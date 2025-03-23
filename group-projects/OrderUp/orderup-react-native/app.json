@@ -1,0 +1,10 @@
+{
+  "expo": {
+    "name": "orderup-react-native",
+    "slug": "orderup-react-native",
+    "version": "1.0.0",
+    "assetBundlePatterns": [
+      "**/*"
+    ]
+  }
+}
