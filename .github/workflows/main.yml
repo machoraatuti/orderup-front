@@ -19,9 +19,9 @@ We follow a structured branching model to manage features, bug fixes, and releas
 ## 3️⃣ Workflow Process
 ### 📌 Step 1: Clone the Repository (First-Time Setup)
 ```bash
-git clone https://github.com/org-name/repo-name.git
+git remote add origin https://github.com/org-name/repo-name.git
 cd repo-name
-git checkout develop
+git checkout dev
 ```
 
 ### 📌 Step 2: Create a New Feature Branch
