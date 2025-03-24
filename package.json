@@ -1,6 +1,6 @@
 {
   "name": "orderup",
-  "main": "expo-router/entry",
+  "main": "node_modules/expo/AppEntry.js",
   "version": "1.0.0",
   "scripts": {
     "start": "expo start",
@@ -16,8 +16,9 @@
   },
   "dependencies": {
     "@expo/vector-icons": "^14.0.2",
-    "@react-navigation/bottom-tabs": "^7.2.0",
-    "@react-navigation/native": "^7.0.14",
+    "@react-navigation/bottom-tabs": "^7.3.2",
+    "@react-navigation/native": "^7.0.18",
+    "@react-navigation/stack": "^7.2.2",
     "expo": "~52.0.40",
     "expo-blur": "~14.0.3",
     "expo-constants": "~17.0.8",
