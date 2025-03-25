@@ -1,199 +1,372 @@
 // src/screens/HomeScreen.js
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { View, Text, StyleSheet, ScrollView, TextInput, Image, TouchableOpacity, FlatList } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 const HomeScreen = () => {
-  const navigation = useNavigation();
-  
-  // Mock featured restaurants data
   const featuredRestaurants = [
-    { id: '1', name: 'Nyama Mama', image: 'https://via.placeholder.com/150', cuisine: 'Kenyan', rating: 4.7 },
-    { id: '2', name: 'Java House', image: 'https://via.placeholder.com/150', cuisine: 'Cafe', rating: 4.5 },
-    { id: '3', name: 'Galitos', image: 'https://via.placeholder.com/150', cuisine: 'Fast Food', rating: 4.3 },
+    {
+      id: '1',
+      name: 'Java House',
+      image: require('../../assets/images/java-house.jpg'),
+      category: 'Cafe',
+      distance: '1.2 km',
+      discount: '20% OFF'
+    },
+    {
+      id: '2',
+      name: 'Chicken Inn',
+      image: require('../../assets/images/chicken-inn.jpg'),
+      category: 'Fast Food',
+      distance: '0.8 km'
+    }
   ];
-  
-  return (
-    <ScrollView style={styles.container}>
-      {/* Welcome Section */}
-      <View style={styles.header}>
-        <Text style={styles.greeting}>Good morning,</Text>
-        <Text style={styles.username}>User</Text>
-      </View>
-      
-      {/* Hero Banner */}
-      <View style={styles.heroBanner}>
-        <Text style={styles.heroTitle}>Skip the Wait,{'\n'}Not the Experience</Text>
-        <TouchableOpacity 
-          style={styles.exploreButton}
-          onPress={() => navigation.navigate('Restaurants')}
-        >
-          <Text style={styles.exploreButtonText}>Explore Restaurants</Text>
-        </TouchableOpacity>
-      </View>
-      
-      {/* Featured Restaurants */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Featured Restaurants</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalScroll}>
-          {featuredRestaurants.map(restaurant => (
-            <TouchableOpacity 
-              key={restaurant.id}
-              style={styles.restaurantCard}
-              onPress={() => navigation.navigate('RestaurantDetail', { id: restaurant.id, name: restaurant.name })}
-            >
-              <View style={styles.imageContainer}>
-                <Image 
-                  source={{ uri: restaurant.image }} 
-                  style={styles.restaurantImage} 
-                />
-              </View>
-              <Text style={styles.restaurantName}>{restaurant.name}</Text>
-              <View style={styles.restaurantInfo}>
-                <Text style={styles.restaurantCuisine}>{restaurant.cuisine}</Text>
-                <View style={styles.ratingContainer}>
-                  <Text style={styles.ratingText}>★ {restaurant.rating}</Text>
-                </View>
-              </View>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-      </View>
-      
-      {/* Categories Section */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Categories</Text>
-        <View style={styles.categoriesGrid}>
-          {['Kenyan', 'Fast Food', 'Indian', 'Chinese', 'Cafe', 'Dessert'].map(category => (
-            <TouchableOpacity key={category} style={styles.categoryItem}>
-              <Text style={styles.categoryText}>{category}</Text>
-            </TouchableOpacity>
-          ))}
+
+  const categories = [
+    { id: '1', name: 'Burgers', icon: 'fast-food-outline' },
+    { id: '2', name: 'Pizza', icon: 'pizza-outline' },
+    { id: '3', name: 'Coffee', icon: 'cafe-outline' },
+    { id: '4', name: 'Chicken', icon: 'restaurant-outline' },
+    { id: '5', name: 'Salads', icon: 'leaf-outline' },
+    { id: '6', name: 'Drinks', icon: 'wine-outline' },
+    { id: '7', name: 'Dessert', icon: 'ice-cream-outline' },
+    { id: '8', name: 'More', icon: 'add-outline' }
+  ];
+
+  const popularRestaurants = [
+    {
+      id: '1',
+      name: 'KFC',
+      image: require('../../assets/images/kfc.jpg'),
+      rating: 4.7,
+      reviewCount: '200+',
+      category: 'Fast Food',
+      deliveryTime: '15-20 min'
+    },
+    {
+      id: '2',
+      name: 'Artcaffe',
+      image: require('../../assets/images/artcaffe.jpg'),
+      rating: 4.5,
+      reviewCount: '150+',
+      category: 'Cafe',
+      deliveryTime: '20-25 min'
+    },
+    {
+      id: '3',
+      name: 'Burger King',
+      image: require('../../assets/images/burger-king.jpg'),
+      rating: 4.3,
+      reviewCount: '180+',
+      category: 'Fast Food',
+      deliveryTime: '15-20 min'
+    }
+  ];
+
+  const renderFeaturedItem = ({ item }) => (
+    <TouchableOpacity style={styles.featuredCard}>
+      <Image source={item.image} style={styles.featuredImage} />
+      {item.discount && (
+        <View style={styles.discountBadge}>
+          <Text style={styles.discountText}>{item.discount}</Text>
         </View>
+      )}
+      <View style={styles.featuredInfo}>
+        <Text style={styles.restaurantName}>{item.name}</Text>
+        <Text style={styles.restaurantDetail}>{item.category} • {item.distance}</Text>
       </View>
-    </ScrollView>
+    </TouchableOpacity>
+  );
+
+  const renderCategoryItem = ({ item }) => (
+    <TouchableOpacity style={styles.categoryItem}>
+      <View style={styles.categoryIcon}>
+        <Ionicons name={item.icon} size={24} color="#333" />
+      </View>
+      <Text style={styles.categoryName}>{item.name}</Text>
+    </TouchableOpacity>
+  );
+
+  const renderPopularItem = ({ item }) => (
+    <TouchableOpacity style={styles.popularCard}>
+      <Image source={item.image} style={styles.popularImage} />
+      <Text style={styles.popularName}>{item.name}</Text>
+      <View style={styles.ratingContainer}>
+        <Ionicons name="star" size={16} color="#FFD700" />
+        <Text style={styles.rating}>{item.rating}</Text>
+        <Text style={styles.reviewCount}>({item.reviewCount})</Text>
+      </View>
+      <Text style={styles.category}>{item.category} • {item.deliveryTime}</Text>
+    </TouchableOpacity>
+  );
+
+  return (
+    <View style={styles.container}>
+      <ScrollView showsVerticalScrollIndicator={false}>
+        {/* Location Selector */}
+        <View style={styles.locationContainer}>
+          <Text style={styles.appTitle}>OrderUp</Text>
+          <TouchableOpacity style={styles.locationSelector}>
+            <Ionicons name="location" size={20} color="#FF5722" />
+            <Text style={styles.locationText}>Nairobi, Kenya</Text>
+            <Ionicons name="chevron-down" size={20} color="#333" />
+          </TouchableOpacity>
+        </View>
+
+        {/* Search Bar */}
+        <View style={styles.searchContainer}>
+          <Ionicons name="search" size={20} color="#999" />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Find restaurants, cuisines..."
+          />
+        </View>
+
+        {/* Category Filters */}
+        <View style={styles.filterContainer}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <TouchableOpacity style={[styles.filterButton, styles.activeFilter]}>
+              <Text style={styles.activeFilterText}>All</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.filterButton}>
+              <Text style={styles.filterText}>Nearby</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.filterButton}>
+              <Text style={styles.filterText}>Fast Food</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.filterButton}>
+              <Text style={styles.filterText}>Healthy</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.filterButton}>
+              <Text style={styles.filterText}>Offers</Text>
+            </TouchableOpacity>
+          </ScrollView>
+        </View>
+
+        {/* Featured Restaurants */}
+        <View style={styles.sectionContainer}>
+          <Text style={styles.sectionTitle}>Featured Restaurants</Text>
+          <FlatList
+            data={featuredRestaurants}
+            renderItem={renderFeaturedItem}
+            keyExtractor={(item) => item.id}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+          />
+        </View>
+
+        {/* Categories */}
+        <View style={styles.sectionContainer}>
+          <Text style={styles.sectionTitle}>Categories</Text>
+          <FlatList
+            data={categories}
+            renderItem={renderCategoryItem}
+            keyExtractor={(item) => item.id}
+            numColumns={4}
+            scrollEnabled={false}
+          />
+        </View>
+
+        {/* Popular Restaurants */}
+        <View style={styles.sectionContainer}>
+          <Text style={styles.sectionTitle}>Popular Restaurants</Text>
+          <FlatList
+            data={popularRestaurants}
+            renderItem={renderPopularItem}
+            keyExtractor={(item) => item.id}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+          />
+        </View>
+      </ScrollView>
+
+      
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f8f8',
+    backgroundColor: '#fff',
   },
-  header: {
-    padding: 20,
-    paddingTop: 10,
+  locationContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingTop: 16,
   },
-  greeting: {
-    fontSize: 16,
-    color: '#666',
-  },
-  username: {
-    fontSize: 24,
+  appTitle: {
+    fontSize: 22,
     fontWeight: 'bold',
+    color: '#FF5722',
+  },
+  locationSelector: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  locationText: {
+    fontSize: 16,
+    marginLeft: 4,
+    marginRight: 4,
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f5f5f5',
+    marginHorizontal: 16,
+    marginVertical: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 25,
+  },
+  searchInput: {
+    flex: 1,
+    marginLeft: 8,
+    fontSize: 16,
+  },
+  filterContainer: {
+    paddingHorizontal: 16,
+    marginBottom: 16,
+  },
+  filterButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: '#f5f5f5',
+    borderRadius: 20,
+    marginRight: 8,
+  },
+  activeFilter: {
+    backgroundColor: '#FF5722',
+  },
+  filterText: {
     color: '#333',
   },
-  heroBanner: {
-    backgroundColor: '#FF5722',
-    padding: 20,
-    borderRadius: 12,
-    margin: 20,
-    marginTop: 0,
-  },
-  heroTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
+  activeFilterText: {
     color: 'white',
-    marginBottom: 20,
+    fontWeight: '500',
   },
-  exploreButton: {
-    backgroundColor: 'white',
-    padding: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-    alignSelf: 'flex-start',
-  },
-  exploreButtonText: {
-    color: '#FF5722',
-    fontWeight: '600',
-  },
-  section: {
+  sectionContainer: {
     marginBottom: 24,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
+    marginHorizontal: 16,
     marginBottom: 16,
-    paddingHorizontal: 20,
   },
-  horizontalScroll: {
-    paddingLeft: 20,
-  },
-  restaurantCard: {
-    width: 200,
-    marginRight: 16,
-    backgroundColor: 'white',
-    borderRadius: 12,
+  featuredCard: {
+    width: 180,
+    marginLeft: 16,
+    borderRadius: 8,
     overflow: 'hidden',
+    backgroundColor: 'white',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
   },
-  imageContainer: {
+  featuredImage: {
     width: '100%',
     height: 120,
   },
-  restaurantImage: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
+  discountBadge: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    backgroundColor: '#4CAF50',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
+  },
+  discountText: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 12,
+  },
+  featuredInfo: {
+    padding: 8,
   },
   restaurantName: {
     fontSize: 16,
     fontWeight: 'bold',
-    margin: 12,
-    marginBottom: 4,
   },
-  restaurantInfo: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginHorizontal: 12,
-    marginBottom: 12,
-  },
-  restaurantCuisine: {
-    fontSize: 14,
+  restaurantDetail: {
+    fontSize: 12,
     color: '#666',
+    marginTop: 4,
+  },
+  categoryItem: {
+    width: '25%',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  categoryIcon: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#f5f5f5',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  categoryName: {
+    fontSize: 12,
+  },
+  popularCard: {
+    width: 160,
+    marginLeft: 16,
+    marginBottom: 16,
+  },
+  popularImage: {
+    width: '100%',
+    height: 120,
+    borderRadius: 8,
+    marginBottom: 8,
+  },
+  popularName: {
+    fontSize: 16,
+    fontWeight: 'bold',
   },
   ratingContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginVertical: 4,
   },
-  ratingText: {
-    fontSize: 14,
-    color: '#FF9800',
-    fontWeight: '500',
+  rating: {
+    marginLeft: 4,
+    fontWeight: 'bold',
   },
-  categoriesGrid: {
+  reviewCount: {
+    color: '#666',
+    fontSize: 12,
+    marginLeft: 4,
+  },
+  category: {
+    fontSize: 12,
+    color: '#666',
+  },
+  bottomNav: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    paddingHorizontal: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#eee',
+    paddingVertical: 8,
   },
-  categoryItem: {
-    backgroundColor: 'white',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 20,
-    margin: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
+  navItem: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  categoryText: {
-    fontWeight: '500',
+  navText: {
+    fontSize: 12,
+    marginTop: 4,
+    color: '#999',
+  },
+  activeNavText: {
+    color: '#FF5722',
   },
 });
 

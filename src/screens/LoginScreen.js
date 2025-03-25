@@ -5,47 +5,65 @@ import { View, Text, StyleSheet, TextInput, TouchableOpacity, SafeAreaView } fro
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [errors, setErrors] = useState({});
+
+  const validate = () => {
+    const newErrors = {};
+    
+    if (!email) newErrors.email = 'Email is required';
+    else if (!/\S+@\S+\.\S+/.test(email)) newErrors.email = 'Email is invalid';
+    
+    if (!password) newErrors.password = 'Password is required';
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleLogin = () => {
+    if (validate()) {
+      // In a real app, you would perform authentication here
+      navigation.navigate('Main');
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
         <Text style={styles.logo}>OrderUp</Text>
         <Text style={styles.tagline}>Skip the wait, not the experience</Text>
-        
         <View style={styles.form}>
           <View style={styles.formGroup}>
             <Text style={styles.label}>Email</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, errors.email && styles.inputError]}
               value={email}
               onChangeText={setEmail}
               placeholder="Enter your email"
               keyboardType="email-address"
               autoCapitalize="none"
             />
+            {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
           </View>
           
           <View style={styles.formGroup}>
             <Text style={styles.label}>Password</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, errors.password && styles.inputError]}
               value={password}
               onChangeText={setPassword}
               placeholder="Enter your password"
               secureTextEntry
             />
+            {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
           </View>
           
           <TouchableOpacity style={styles.forgotPassword}>
             <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
           </TouchableOpacity>
           
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.button}
-            onPress={() => navigation.reset({
-              index: 0,
-              routes: [{ name: 'Main' }],
-            })}
+            onPress={handleLogin}
           >
             <Text style={styles.buttonText}>Login</Text>
           </TouchableOpacity>
@@ -104,6 +122,14 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 12,
     fontSize: 16,
+  },
+  inputError: {
+    borderColor: '#ff5252',
+  },
+  errorText: {
+    color: '#ff5252',
+    fontSize: 14,
+    marginTop: 4,
   },
   forgotPassword: {
     alignSelf: 'flex-end',
