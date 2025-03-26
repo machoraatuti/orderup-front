@@ -1,6 +1,8 @@
 // src/screens/SignupScreen.js
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, SafeAreaView, ScrollView } from 'react-native';
+import { 
+  View, Text, StyleSheet, TextInput, TouchableOpacity, SafeAreaView, ScrollView, Alert, ActivityIndicator 
+} from 'react-native';
 
 const SignupScreen = ({ navigation }) => {
   const [formData, setFormData] = useState({
@@ -10,11 +12,54 @@ const SignupScreen = ({ navigation }) => {
     confirmPassword: ''
   });
 
+  const [loading, setLoading] = useState(false);
+
   const updateFormField = (field, value) => {
     setFormData({
       ...formData,
       [field]: value
     });
+  };
+
+  const handleSignup = async () => {
+    const { name, email, password, confirmPassword } = formData;
+
+    //  Basic Validation
+    if (!name || !email || !password || !confirmPassword) {
+      Alert.alert('Error', 'All fields are required.');
+      return;
+    }
+    
+    if (password !== confirmPassword) {
+      Alert.alert('Error', 'Passwords do not match.');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const response = await fetch('http://192.168.0.18:3000/api/auth/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name, email, password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Signup failed.');
+      }
+
+      Alert.alert('Success', 'Account created successfully!');
+      navigation.navigate('Login');
+
+    } catch (error) {
+      Alert.alert('Error', error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -71,9 +116,14 @@ const SignupScreen = ({ navigation }) => {
             
             <TouchableOpacity 
               style={styles.button}
-              onPress={() => navigation.navigate('Login')}
+              onPress={handleSignup}
+              disabled={loading}
             >
-              <Text style={styles.buttonText}>Sign Up</Text>
+              {loading ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={styles.buttonText}>Sign Up</Text>
+              )}
             </TouchableOpacity>
             
             <View style={styles.loginContainer}>
