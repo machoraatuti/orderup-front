@@ -1,4 +1,5 @@
 // src/screens/ProfileScreen.js
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
 
@@ -31,12 +32,39 @@ const ProfileScreen = ({ navigation }) => {
     },
   ];
   
-  const handleLogout = () => {
-    // In a real app, this would clear auth state
-    navigation.reset({
-      index: 0,
-      routes: [{ name: 'Login' }],
-    });
+  const handleLogout = async() => {
+    //try..catch block
+    try {
+      //retrieve token for logout
+      const token = await AsyncStorage.getItem("token");
+      //validation for token
+      if(!token) {
+        console.warn("No Token");
+      }
+
+      const response = await fetch("http://192.168.183.189:3000/api/auth/logout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`//attach token to auth header
+        },
+        body: JSON.stringify({ token })
+      });
+
+      if(response.ok) {
+        await AsyncStorage.removeItem("token");
+        navigation.reset({
+          index: 0,
+          routes: [{ name: "Login" }]
+        });
+      } else {
+        console.error("Logout failed:", await response.text() );
+      }
+
+      
+    } catch(err) {
+      console.error("Logout Error", err);
+    };
   };
   
   return (
