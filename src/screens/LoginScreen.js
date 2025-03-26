@@ -1,6 +1,7 @@
 // src/screens/LoginScreen.js
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, SafeAreaView } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
@@ -19,11 +20,34 @@ const LoginScreen = ({ navigation }) => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleLogin = () => {
-    if (validate()) {
-      // In a real app, you would perform authentication here
-      navigation.navigate('Main');
-    }
+  const handleLogin = async () => {
+    //email and password validation
+    if(!validate()) return;
+
+    //try..catch block
+    try {
+      //await endpoint
+      const response = await fetch("http://192.168.183.189:3000/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await response.json();
+      //error to login
+      if(!response.ok) {
+        throw new Error(data.message|| "Login Failed!");
+      }
+      //store token
+      await AsyncStorage.setItem("token", data.token);
+      //navigate to main screen
+      navigation.navigate("Main");
+
+    } catch(err) {
+      setErrors((prev) => ({...prev, general: err.message}));
+    };
+
   };
 
   return (
