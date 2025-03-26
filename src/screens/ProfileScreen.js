@@ -1,16 +1,30 @@
 // src/screens/ProfileScreen.js
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
 
 const ProfileScreen = ({ navigation }) => {
-  // Mock user data
-  const user = {
-    name: 'John Kimani',
-    email: 'john.kimani@example.com',
-    phone: '+254 712 345 678',
-    profileImage: 'https://via.placeholder.com/150',
-  };
+  //user data
+  const [ user, setUser ] = useState(null);
+
+  useEffect(() => {
+    //fetch user data
+    const fetchData = async () => {
+      //try..catch block
+      try {
+        //retrieve user data
+        const savedUser = await AsyncStorage.getItem("user");
+        if(savedUser) {
+          //set state and change to object
+          setUser(JSON.parse(savedUser));
+        }
+      } catch(err) {
+        console.err("Error retrieving user data:", err);
+      };
+    };
+    //call fetch 
+    fetchData();
+  }, []);
   
   // Mock order history
   const orderHistory = [
@@ -71,10 +85,16 @@ const ProfileScreen = ({ navigation }) => {
     <ScrollView style={styles.container}>
       {/* Profile Header */}
       <View style={styles.profileHeader}>
-        <Image source={{ uri: user.profileImage }} style={styles.profileImage} />
-        <Text style={styles.profileName}>{user.name}</Text>
-        <Text style={styles.profileEmail}>{user.email}</Text>
-        <Text style={styles.profilePhone}>{user.phone}</Text>
+        { user ? (
+          <>
+            <Image source={{ uri: user.profileImage }} style={styles.profileImage} />
+            <Text style={styles.profileName}>{user.name}</Text>
+            <Text style={styles.profileEmail}>{user.email}</Text>
+            <Text style={styles.profilePhone}>{user.phone}</Text>
+          </>
+        ): (
+          <Text>Loading profile...</Text>
+        ) }
       </View>
       
       {/* Account Settings */}

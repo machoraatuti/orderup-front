@@ -40,7 +40,9 @@ const LoginScreen = ({ navigation }) => {
         throw new Error(data.message|| "Login Failed!");
       }
       //store token
-      await AsyncStorage.setItem("token", data.token);
+      await AsyncStorage.setItem("user", JSON.stringify(data.user));//user
+      await AsyncStorage.setItem("token", data.token);//jwt
+
       //navigate to main screen
       navigation.navigate("Main");
 
