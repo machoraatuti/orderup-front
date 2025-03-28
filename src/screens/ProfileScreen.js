@@ -7,7 +7,6 @@ import { Ionicons } from '@expo/vector-icons';
 const ProfileScreen = ({ navigation }) => {
   //user data
   const [ user, setUser ] = useState(null);
-  const apiUrl = process.env.REACT_APP_API_URL;
 
 
   useEffect(() => {
@@ -59,7 +58,7 @@ const ProfileScreen = ({ navigation }) => {
         console.warn("No Token");
       }
 
-      const response = await fetch(apiUrl, {
+      const response = await fetch('http://192.168.0.18:3000/api/auth/logout', {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

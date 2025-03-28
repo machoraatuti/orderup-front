@@ -30,7 +30,7 @@ const LoginScreen = ({ navigation }) => {
     //try..catch block
     try {
       //await endpoint
-      const response = await fetch( apiUrl, {
+      const response = await fetch( 'http://192.168.0.18:3000/api/auth/login', {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
