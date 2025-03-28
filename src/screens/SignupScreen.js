@@ -14,6 +14,9 @@ const SignupScreen = ({ navigation }) => {
 
   const [loading, setLoading] = useState(false);
 
+  const apiUrl = process.env.REACT_APP_API_URL;
+
+
   const updateFormField = (field, value) => {
     setFormData({
       ...formData,
@@ -38,7 +41,7 @@ const SignupScreen = ({ navigation }) => {
     setLoading(true);
 
     try {
-      const response = await fetch('http://192.168.183.189:3000/api/auth/signup', {
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

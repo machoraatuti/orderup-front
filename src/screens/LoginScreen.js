@@ -8,6 +8,9 @@ const LoginScreen = ({ navigation }) => {
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState({});
 
+  const apiUrl = process.env.REACT_APP_API_URL;
+
+
   const validate = () => {
     const newErrors = {};
     
@@ -27,7 +30,7 @@ const LoginScreen = ({ navigation }) => {
     //try..catch block
     try {
       //await endpoint
-      const response = await fetch("http://192.168.183.189:3000/api/auth/login", {
+      const response = await fetch( apiUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
