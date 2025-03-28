@@ -2,6 +2,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 const ProfileScreen = ({ navigation }) => {
   //user data
@@ -100,17 +101,41 @@ const ProfileScreen = ({ navigation }) => {
       {/* Account Settings */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Account Settings</Text>
-        <TouchableOpacity style={styles.settingItem}>
-          <Text style={styles.settingText}>Edit Profile</Text>
+        
+        <TouchableOpacity 
+          style={styles.settingItem}
+          onPress={() => navigation.navigate('EditProfile')}
+        >
+          <Ionicons name="person-outline" size={24} color="#666" style={styles.settingIcon} />
+          <Text style={styles.settingLabel}>Personal Information</Text>
+          <Ionicons name="chevron-forward" size={20} color="#ccc" />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.settingItem}>
-          <Text style={styles.settingText}>Saved Addresses</Text>
+        
+        <TouchableOpacity 
+          style={styles.settingItem}
+          onPress={() => navigation.navigate('SavedAddresses')}
+        >
+          <Ionicons name="location-outline" size={24} color="#666" style={styles.settingIcon} />
+          <Text style={styles.settingLabel}>Saved Addresses</Text>
+          <Ionicons name="chevron-forward" size={20} color="#ccc" />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.settingItem}>
-          <Text style={styles.settingText}>Payment Methods</Text>
+        
+        <TouchableOpacity 
+          style={styles.settingItem}
+          onPress={() => navigation.navigate('PaymentMethods')}
+        >
+          <Ionicons name="card-outline" size={24} color="#666" style={styles.settingIcon} />
+          <Text style={styles.settingLabel}>Payment Methods</Text>
+          <Ionicons name="chevron-forward" size={20} color="#ccc" />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.settingItem}>
-          <Text style={styles.settingText}>Notifications</Text>
+        
+        <TouchableOpacity 
+          style={styles.settingItem}
+          onPress={() => navigation.navigate('Notifications')}
+        >
+          <Ionicons name="notifications-outline" size={24} color="#666" style={styles.settingIcon} />
+          <Text style={styles.settingLabel}>Notifications</Text>
+          <Ionicons name="chevron-forward" size={20} color="#ccc" />
         </TouchableOpacity>
       </View>
       
@@ -138,6 +163,7 @@ const ProfileScreen = ({ navigation }) => {
       
       {/* Logout Button */}
       <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+        <Ionicons name="log-out-outline" size={20} color="white" style={{ marginRight: 8 }} />
         <Text style={styles.logoutButtonText}>Logout</Text>
       </TouchableOpacity>
     </ScrollView>
@@ -194,12 +220,18 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   settingItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
   },
-  settingText: {
+  settingIcon: {
+    marginRight: 12,
+  },
+  settingLabel: {
     fontSize: 16,
+    flex: 1,
   },
   orderItem: {
     backgroundColor: '#f5f5f5',
@@ -255,6 +287,8 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: 'center',
     marginBottom: 32,
+    flexDirection: 'row',
+    justifyContent: 'center',
   },
   logoutButtonText: {
     color: 'white',

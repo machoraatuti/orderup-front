@@ -1,8 +1,15 @@
 // src/screens/CartScreen.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image } from 'react-native';
 
 const CartScreen = ({ navigation }) => {
+  // Add this useEffect to fix the back button text
+  useEffect(() => {
+    navigation.setOptions({
+      headerBackTitle: 'Back',  // This changes the back button text from "Login" to "Back"
+    });
+  }, [navigation]);
+
   // Mock cart items
   const [cartItems, setCartItems] = useState([
     { 
