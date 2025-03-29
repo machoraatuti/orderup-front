@@ -2,13 +2,12 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, SafeAreaView } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { ORDERUP_SERVER } from "@env";
 
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState({});
-
-  const apiUrl = process.env.REACT_APP_API_URL;
 
 
   const validate = () => {
@@ -30,7 +29,7 @@ const LoginScreen = ({ navigation }) => {
     //try..catch block
     try {
       //await endpoint
-      const response = await fetch( 'http://192.168.0.18:3000/api/auth/login', {
+      const response = await fetch( `${ ORDERUP_SERVER }/api/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { 
   View, Text, StyleSheet, TextInput, TouchableOpacity, SafeAreaView, ScrollView, Alert, ActivityIndicator 
 } from 'react-native';
+import { ORDERUP_SERVER } from "@env";
 
 const SignupScreen = ({ navigation }) => {
   const [formData, setFormData] = useState({
@@ -40,7 +41,7 @@ const SignupScreen = ({ navigation }) => {
     setLoading(true);
 
     try {
-      const response = await fetch('http://192.168.0.18:3000/api/auth/signup', {
+      const response = await fetch(`${ ORDERUP_SERVER }/api/auth/signup`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
