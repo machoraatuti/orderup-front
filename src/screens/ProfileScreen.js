@@ -3,6 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { ORDERUP_SERVER } from "@env";
 
 const ProfileScreen = ({ navigation }) => {
   //user data
@@ -58,7 +59,7 @@ const ProfileScreen = ({ navigation }) => {
         console.warn("No Token");
       }
 
-      const response = await fetch('http://192.168.0.18:3000/api/auth/logout', {
+      const response = await fetch(`${ ORDERUP_SERVER }/api/auth/logout`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
