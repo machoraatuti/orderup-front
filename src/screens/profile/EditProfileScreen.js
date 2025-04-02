@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert } from 'react-native';
-import { ORDERUP_SERVER } from "@env";  // Assuming this is defined in .env
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { ORDERUP_SERVER } from "@env";  // Assuming this is defined in .env
 
 const EditProfileScreen = ({ navigation }) => {
   // Set initial state for name, email, and phone
@@ -10,6 +10,7 @@ const EditProfileScreen = ({ navigation }) => {
   const [phone, setPhone] = useState('');
   const [loading, setLoading] = useState(false);
 
+  // Fetch profile data (name, email) from the server
   const fetchProfileData = async () => {
     try {
       const token = await AsyncStorage.getItem('token');  // Retrieve the token
@@ -17,19 +18,19 @@ const EditProfileScreen = ({ navigation }) => {
         Alert.alert('Error', 'User not authenticated');
         return;
       }
-      // Fetch user profile data using token
+      // Fetch user profile data (name, email) using token
       const response = await fetch(`${ORDERUP_SERVER}/api/profile`, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${token}`,  // Replace with actual auth token
+          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
       });
+
       const data = await response.json();
       if (response.ok) {
         setName(data.name);
         setEmail(data.email);
-        setPhone(data.phone); // Handle optional phone
       } else {
         Alert.alert('Error', data.message);
       }
@@ -41,16 +42,36 @@ const EditProfileScreen = ({ navigation }) => {
   useEffect(() => {
     // Fetch existing profile data when the screen loads
     fetchProfileData();
+
+    // Retrieve phone number from AsyncStorage (if available)
+    const loadPhoneFromStorage = async () => {
+      const savedPhone = await AsyncStorage.getItem('phone');
+      if (savedPhone) {
+        setPhone(savedPhone);  // Set the saved phone number
+      }
+    };
+
+    loadPhoneFromStorage();
   }, []);
 
   const handleSaveChanges = async () => {
-    if (!name || !email) {
-      Alert.alert('Error', 'Name and Email are required!');
+    if (!name || !email || !phone) {
+      Alert.alert('Error', 'Name, Email, and Phone are required!');
       return;
     }
-  
-    const updatedProfile = { name, email, phone };
-  
+
+    // Basic validation for phone number (e.g., 10 digits)
+    const phoneRegex = /^\+?[1-9]\d{1,14}$/;
+
+    if (!phoneRegex.test(phone)) {
+      Alert.alert('Error', 'Please enter a valid phone number');
+      return;
+    }
+
+    // Save phone number locally using AsyncStorage
+    await AsyncStorage.setItem('phone', phone);
+
+    // Optionally, save other profile details to a server if required (e.g., name, email)
     setLoading(true);
     try {
       const token = await AsyncStorage.getItem('token');
@@ -58,7 +79,9 @@ const EditProfileScreen = ({ navigation }) => {
         Alert.alert('Error', 'User not authenticated');
         return;
       }
-  
+
+      const updatedProfile = { name, email }; // Only send name and email to the server
+
       const response = await fetch(`${ORDERUP_SERVER}/api/profile/edit`, {
         method: 'PUT',
         headers: {
@@ -67,17 +90,11 @@ const EditProfileScreen = ({ navigation }) => {
         },
         body: JSON.stringify(updatedProfile),
       });
-  
+
       const data = await response.json();
       if (response.ok) {
-        // Update the user state with the new data
         setName(data.name);
         setEmail(data.email);
-        setPhone(data.phone);
-  
-        // Optionally, fetch the updated profile data
-        fetchProfileData();
-  
         Alert.alert('Success', 'Profile updated successfully');
         navigation.goBack();
       } else {
@@ -85,7 +102,6 @@ const EditProfileScreen = ({ navigation }) => {
       }
     } catch (error) {
       Alert.alert('Error', 'Failed to update profile');
-      console.error(error);
     } finally {
       setLoading(false);
     }
@@ -118,7 +134,7 @@ const EditProfileScreen = ({ navigation }) => {
         <Text style={styles.label}>Phone Number</Text>
         <TextInput 
           style={styles.input}
-          placeholder="Phone Number"
+          placeholder="254712345678"
           value={phone} // Bind value to state
           onChangeText={setPhone}
           keyboardType="phone-pad"
@@ -174,3 +190,4 @@ const styles = StyleSheet.create({
 });
 
 export default EditProfileScreen;
+
