@@ -12,8 +12,8 @@ import {
   KeyboardAvoidingView,
   Platform
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Ionicons } from '@expo/vector-icons';
 import { ORDERUP_SERVER } from '@env';
 
 const EditProfileScreen = ({ navigation }) => {
@@ -26,125 +26,102 @@ const EditProfileScreen = ({ navigation }) => {
   });
   const [errors, setErrors] = useState({});
 
-  // Load user data when component mounts
+  // Fetch profile data (name, email) from the server
+  const fetchProfileData = async () => {
+    try {
+      const token = await AsyncStorage.getItem('token');  // Retrieve the token
+      if (!token) {
+        Alert.alert('Error', 'User not authenticated');
+        return;
+      }
+      // Fetch user profile data (name, email) using token
+      const response = await fetch(`${ORDERUP_SERVER}/api/profile`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        setName(data.name);
+        setEmail(data.email);
+      } else {
+        Alert.alert('Error', data.message);
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to fetch profile data');
+    }
+  };
+
   useEffect(() => {
-    const loadUserData = async () => {
-      try {
-        setLoading(true);
-        const savedUser = await AsyncStorage.getItem('user');
-        if (savedUser) {
-          const parsedUser = JSON.parse(savedUser);
-          setUserData({
-            name: parsedUser.name || '',
-            email: parsedUser.email || '',
-            phone: parsedUser.phone || '',
-          });
-        }
-      } catch (error) {
-        console.error('Error loading user data:', error);
-        Alert.alert('Error', 'Failed to load your profile information');
-      } finally {
-        setLoading(false);
+    // Fetch existing profile data when the screen loads
+    fetchProfileData();
+
+    // Retrieve phone number from AsyncStorage (if available)
+    const loadPhoneFromStorage = async () => {
+      const savedPhone = await AsyncStorage.getItem('phone');
+      if (savedPhone) {
+        setPhone(savedPhone);  // Set the saved phone number
       }
     };
 
-    loadUserData();
+    loadPhoneFromStorage();
   }, []);
 
-  const updateField = (field, value) => {
-    setUserData({
-      ...userData,
-      [field]: value,
-    });
-    
-    // Clear error for this field if it exists
-    if (errors[field]) {
-      setErrors({
-        ...errors,
-        [field]: null,
-      });
-    }
-  };
-
-  const validateData = () => {
-    const newErrors = {};
-    
-    if (!userData.name.trim()) {
-      newErrors.name = 'Name is required';
-    }
-    
-    if (!userData.email.trim()) {
-      newErrors.email = 'Email is required';
-    } else if (!/\S+@\S+\.\S+/.test(userData.email)) {
-      newErrors.email = 'Email is invalid';
-    }
-    
-    if (userData.phone && !/^\+?[0-9]{10,15}$/.test(userData.phone.replace(/\s/g, ''))) {
-      newErrors.phone = 'Phone number is invalid';
-    }
-    
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSave = async () => {
-    if (!validateData()) {
+  const handleSaveChanges = async () => {
+    if (!name || !email || !phone) {
+      Alert.alert('Error', 'Name, Email, and Phone are required!');
       return;
     }
 
+    // Basic validation for phone number (e.g., 10 digits)
+    const phoneRegex = /^\+?[1-9]\d{1,14}$/;
+
+    if (!phoneRegex.test(phone)) {
+      Alert.alert('Error', 'Please enter a valid phone number');
+      return;
+    }
+
+    // Save phone number locally using AsyncStorage
+    await AsyncStorage.setItem('phone', phone);
+
+    // Optionally, save other profile details to a server if required (e.g., name, email)
+    setLoading(true);
     try {
       setSaving(true);
 
       // Get the current user
       const savedUser = await AsyncStorage.getItem('user');
       const token = await AsyncStorage.getItem('token');
-      
-      if (!savedUser || !token) {
-        throw new Error('User data or authentication token not found');
+      if (!token) {
+        Alert.alert('Error', 'User not authenticated');
+        return;
       }
-      
-      const currentUser = JSON.parse(savedUser);
-      
-      // In a real app, you would send an API request to update user data
-      try {
-        const response = await fetch(`${ORDERUP_SERVER}/api/user/update-profile`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify({
-            name: userData.name,
-            phone: userData.phone,
-          }),
-        });
-        
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || 'Failed to update profile');
-        }
-        
-        // If we get here, the API request was successful
-      } catch (apiError) {
-        console.error('API error updating profile:', apiError);
-        // Continue with local updates even if API fails
+
+      const updatedProfile = { name, email }; // Only send name and email to the server
+
+      const response = await fetch(`${ORDERUP_SERVER}/api/profile/edit`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatedProfile),
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        setName(data.name);
+        setEmail(data.email);
+        Alert.alert('Success', 'Profile updated successfully');
+        navigation.goBack();
+      } else {
+        Alert.alert('Error', data.message || 'Failed to update profile');
       }
-      
-      // Update the user in AsyncStorage
-      const updatedUser = {
-        ...currentUser,
-        name: userData.name,
-        phone: userData.phone,
-        // We don't update email here as that typically requires verification
-      };
-      
-      await AsyncStorage.setItem('user', JSON.stringify(updatedUser));
-      
-      Alert.alert('Success', 'Your profile has been updated successfully');
-      navigation.goBack();
     } catch (error) {
-      console.error('Error saving profile:', error);
-      Alert.alert('Error', 'Failed to save your profile information');
+      Alert.alert('Error', 'Failed to update profile');
     } finally {
       setSaving(false);
     }
@@ -160,77 +137,49 @@ const EditProfileScreen = ({ navigation }) => {
   }
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={{ flex: 1 }}
-    >
-      <ScrollView style={styles.container}>
-        <View style={styles.formContainer}>
-          {/* Name Input */}
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>Full Name</Text>
-            <TextInput
-              style={[styles.input, errors.name && styles.inputError]}
-              value={userData.name}
-              onChangeText={(value) => updateField('name', value)}
-              placeholder="Enter your full name"
-            />
-            {errors.name && <Text style={styles.errorText}>{errors.name}</Text>}
-          </View>
-          
-          {/* Email Input */}
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>Email</Text>
-            <TextInput
-              style={[styles.input, errors.email && styles.inputError, styles.inputDisabled]}
-              value={userData.email}
-              editable={false}
-              placeholder="Your email address"
-            />
-            <Text style={styles.helperText}>Email cannot be changed</Text>
-            {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
-          </View>
-          
-          {/* Phone Input */}
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>Phone Number</Text>
-            <TextInput
-              style={[styles.input, errors.phone && styles.inputError]}
-              value={userData.phone}
-              onChangeText={(value) => updateField('phone', value)}
-              placeholder="Enter your phone number"
-              keyboardType="phone-pad"
-            />
-            {errors.phone && <Text style={styles.errorText}>{errors.phone}</Text>}
-          </View>
-          
-          {/* Password Change Section */}
-          <View style={styles.passwordSection}>
-            <View style={styles.passwordHeader}>
-              <Ionicons name="lock-closed-outline" size={18} color="#666" />
-              <Text style={styles.passwordTitle}>Password</Text>
-            </View>
-            <TouchableOpacity style={styles.changePasswordButton}>
-              <Text style={styles.changePasswordText}>Change Password</Text>
-              <Ionicons name="chevron-forward" size={20} color="#FF5722" />
-            </TouchableOpacity>
-          </View>
-          
-          {/* Save Button */}
-          <TouchableOpacity
-            style={[styles.saveButton, saving && styles.saveButtonDisabled]}
-            onPress={handleSave}
-            disabled={saving}
-          >
-            {saving ? (
-              <ActivityIndicator color="#FFFFFF" size="small" />
-            ) : (
-              <Text style={styles.saveButtonText}>Save Changes</Text>
-            )}
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+    <ScrollView style={styles.container}>
+      <View style={styles.formGroup}>
+        <Text style={styles.label}>Full Name</Text>
+        <TextInput 
+          style={styles.input}
+          placeholder="Name"
+          value={name} // Bind value to state
+          onChangeText={setName}
+        />
+      </View>
+      
+      <View style={styles.formGroup}>
+        <Text style={styles.label}>Email</Text>
+        <TextInput 
+          style={styles.input}
+          placeholder="Email"
+          value={email} // Bind value to state
+          onChangeText={setEmail}
+          keyboardType="email-address"
+        />
+      </View>
+      
+      <View style={styles.formGroup}>
+        <Text style={styles.label}>Phone Number</Text>
+        <TextInput 
+          style={styles.input}
+          placeholder="254712345678"
+          value={phone} // Bind value to state
+          onChangeText={setPhone}
+          keyboardType="phone-pad"
+        />
+      </View>
+      
+      <TouchableOpacity 
+        style={styles.saveButton} 
+        onPress={handleSaveChanges}
+        disabled={loading}
+      >
+        <Text style={styles.saveButtonText}>
+          {loading ? 'Saving...' : 'Save Changes'}
+        </Text>
+      </TouchableOpacity>
+    </ScrollView>
   );
 };
 
@@ -334,3 +283,4 @@ const styles = StyleSheet.create({
 });
 
 export default EditProfileScreen;
+
