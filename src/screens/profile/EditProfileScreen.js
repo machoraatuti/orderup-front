@@ -9,11 +9,8 @@ import {
   ScrollView,
   ActivityIndicator,
   Alert,
-  KeyboardAvoidingView,
-  Platform
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Ionicons } from '@expo/vector-icons';
 import { ORDERUP_SERVER } from '@env';
 
 const EditProfileScreen = ({ navigation }) => {
@@ -24,17 +21,16 @@ const EditProfileScreen = ({ navigation }) => {
     email: '',
     phone: '',
   });
-  const [errors, setErrors] = useState({});
 
-  // Fetch profile data (name, email) from the server
+  // Fetch profile data from the server
   const fetchProfileData = async () => {
     try {
-      const token = await AsyncStorage.getItem('token');  // Retrieve the token
+      const token = await AsyncStorage.getItem('token');
       if (!token) {
         Alert.alert('Error', 'User not authenticated');
         return;
       }
-      // Fetch user profile data (name, email) using token
+
       const response = await fetch(`${ORDERUP_SERVER}/api/profile`, {
         method: 'GET',
         headers: {
@@ -45,25 +41,24 @@ const EditProfileScreen = ({ navigation }) => {
 
       const data = await response.json();
       if (response.ok) {
-        setName(data.name);
-        setEmail(data.email);
+        setUserData({ name: data.name, email: data.email, phone: '' });
       } else {
         Alert.alert('Error', data.message);
       }
     } catch (error) {
       Alert.alert('Error', 'Failed to fetch profile data');
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    // Fetch existing profile data when the screen loads
     fetchProfileData();
 
-    // Retrieve phone number from AsyncStorage (if available)
     const loadPhoneFromStorage = async () => {
       const savedPhone = await AsyncStorage.getItem('phone');
       if (savedPhone) {
-        setPhone(savedPhone);  // Set the saved phone number
+        setUserData((prev) => ({ ...prev, phone: savedPhone }));
       }
     };
 
@@ -71,36 +66,29 @@ const EditProfileScreen = ({ navigation }) => {
   }, []);
 
   const handleSaveChanges = async () => {
-    if (!name || !email || !phone) {
+    if (!userData.name || !userData.email || !userData.phone) {
       Alert.alert('Error', 'Name, Email, and Phone are required!');
       return;
     }
 
-    // Basic validation for phone number (e.g., 10 digits)
+    // Validate phone number format
     const phoneRegex = /^\+?[1-9]\d{1,14}$/;
-
-    if (!phoneRegex.test(phone)) {
+    if (!phoneRegex.test(userData.phone)) {
       Alert.alert('Error', 'Please enter a valid phone number');
       return;
     }
 
-    // Save phone number locally using AsyncStorage
-    await AsyncStorage.setItem('phone', phone);
+    await AsyncStorage.setItem('phone', userData.phone);
 
-    // Optionally, save other profile details to a server if required (e.g., name, email)
-    setLoading(true);
     try {
       setSaving(true);
-
-      // Get the current user
-      const savedUser = await AsyncStorage.getItem('user');
       const token = await AsyncStorage.getItem('token');
       if (!token) {
         Alert.alert('Error', 'User not authenticated');
         return;
       }
 
-      const updatedProfile = { name, email }; // Only send name and email to the server
+      const updatedProfile = { name: userData.name, email: userData.email };
 
       const response = await fetch(`${ORDERUP_SERVER}/api/profile/edit`, {
         method: 'PUT',
@@ -113,8 +101,7 @@ const EditProfileScreen = ({ navigation }) => {
 
       const data = await response.json();
       if (response.ok) {
-        setName(data.name);
-        setEmail(data.email);
+        setUserData((prev) => ({ ...prev, name: data.name, email: data.email }));
         Alert.alert('Success', 'Profile updated successfully');
         navigation.goBack();
       } else {
@@ -140,43 +127,39 @@ const EditProfileScreen = ({ navigation }) => {
     <ScrollView style={styles.container}>
       <View style={styles.formGroup}>
         <Text style={styles.label}>Full Name</Text>
-        <TextInput 
+        <TextInput
           style={styles.input}
           placeholder="Name"
-          value={name} // Bind value to state
-          onChangeText={setName}
+          value={userData.name}
+          onChangeText={(text) => setUserData((prev) => ({ ...prev, name: text }))}
         />
       </View>
-      
+
       <View style={styles.formGroup}>
         <Text style={styles.label}>Email</Text>
-        <TextInput 
+        <TextInput
           style={styles.input}
           placeholder="Email"
-          value={email} // Bind value to state
-          onChangeText={setEmail}
+          value={userData.email}
+          onChangeText={(text) => setUserData((prev) => ({ ...prev, email: text }))}
           keyboardType="email-address"
         />
       </View>
-      
+
       <View style={styles.formGroup}>
         <Text style={styles.label}>Phone Number</Text>
-        <TextInput 
+        <TextInput
           style={styles.input}
           placeholder="254712345678"
-          value={phone} // Bind value to state
-          onChangeText={setPhone}
+          value={userData.phone}
+          onChangeText={(text) => setUserData((prev) => ({ ...prev, phone: text }))}
           keyboardType="phone-pad"
         />
       </View>
-      
-      <TouchableOpacity 
-        style={styles.saveButton} 
-        onPress={handleSaveChanges}
-        disabled={loading}
-      >
+
+      <TouchableOpacity style={styles.saveButton} onPress={handleSaveChanges} disabled={saving}>
         <Text style={styles.saveButtonText}>
-          {loading ? 'Saving...' : 'Save Changes'}
+          {saving ? 'Saving...' : 'Save Changes'}
         </Text>
       </TouchableOpacity>
     </ScrollView>
@@ -199,11 +182,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#666',
   },
-  formContainer: {
-    padding: 20,
-  },
   formGroup: {
     marginBottom: 20,
+    paddingHorizontal: 20,
   },
   label: {
     fontSize: 16,
@@ -219,61 +200,13 @@ const styles = StyleSheet.create({
     padding: 12,
     fontSize: 16,
   },
-  inputError: {
-    borderColor: '#FF5252',
-  },
-  inputDisabled: {
-    backgroundColor: '#F5F5F5',
-    color: '#999',
-  },
-  errorText: {
-    color: '#FF5252',
-    fontSize: 14,
-    marginTop: 4,
-  },
-  helperText: {
-    color: '#666',
-    fontSize: 12,
-    marginTop: 4,
-  },
-  passwordSection: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 8,
-    padding: 16,
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-  },
-  passwordHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  passwordTitle: {
-    fontSize: 16,
-    fontWeight: '500',
-    marginLeft: 8,
-    color: '#333',
-  },
-  changePasswordButton: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 8,
-  },
-  changePasswordText: {
-    color: '#FF5722',
-    fontSize: 16,
-  },
   saveButton: {
     backgroundColor: '#FF5722',
     paddingVertical: 16,
     borderRadius: 8,
     alignItems: 'center',
+    marginHorizontal: 20,
     marginTop: 10,
-  },
-  saveButtonDisabled: {
-    backgroundColor: '#FFCCBC',
   },
   saveButtonText: {
     color: '#FFFFFF',
@@ -283,4 +216,5 @@ const styles = StyleSheet.create({
 });
 
 export default EditProfileScreen;
+
 
