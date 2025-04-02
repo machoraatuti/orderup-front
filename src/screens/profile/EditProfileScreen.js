@@ -1,14 +1,30 @@
+// src/screens/profile/EditProfileScreen.js
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  ScrollView,
+  ActivityIndicator,
+  Alert,
+  KeyboardAvoidingView,
+  Platform
+} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { ORDERUP_SERVER } from "@env";  // Assuming this is defined in .env
+import { Ionicons } from '@expo/vector-icons';
+import { ORDERUP_SERVER } from '@env';
 
 const EditProfileScreen = ({ navigation }) => {
-  // Set initial state for name, email, and phone
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [userData, setUserData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+  });
+  const [errors, setErrors] = useState({});
 
   // Fetch profile data (name, email) from the server
   const fetchProfileData = async () => {
@@ -74,6 +90,10 @@ const EditProfileScreen = ({ navigation }) => {
     // Optionally, save other profile details to a server if required (e.g., name, email)
     setLoading(true);
     try {
+      setSaving(true);
+
+      // Get the current user
+      const savedUser = await AsyncStorage.getItem('user');
       const token = await AsyncStorage.getItem('token');
       if (!token) {
         Alert.alert('Error', 'User not authenticated');
@@ -103,9 +123,18 @@ const EditProfileScreen = ({ navigation }) => {
     } catch (error) {
       Alert.alert('Error', 'Failed to update profile');
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   };
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#FF5722" />
+        <Text style={styles.loadingText}>Loading profile information...</Text>
+      </View>
+    );
+  }
 
   return (
     <ScrollView style={styles.container}>
@@ -157,35 +186,99 @@ const EditProfileScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
-    backgroundColor: '#fff',
+    backgroundColor: '#f5f5f5',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f5f5f5',
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 16,
+    color: '#666',
+  },
+  formContainer: {
+    padding: 20,
   },
   formGroup: {
     marginBottom: 20,
   },
   label: {
     fontSize: 16,
-    color: '#333',
+    fontWeight: '500',
     marginBottom: 8,
+    color: '#333',
   },
   input: {
+    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#ddd',
-    padding: 12,
+    borderColor: '#E0E0E0',
     borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
+  },
+  inputError: {
+    borderColor: '#FF5252',
+  },
+  inputDisabled: {
+    backgroundColor: '#F5F5F5',
+    color: '#999',
+  },
+  errorText: {
+    color: '#FF5252',
+    fontSize: 14,
+    marginTop: 4,
+  },
+  helperText: {
+    color: '#666',
+    fontSize: 12,
+    marginTop: 4,
+  },
+  passwordSection: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 8,
+    padding: 16,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+  },
+  passwordHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  passwordTitle: {
+    fontSize: 16,
+    fontWeight: '500',
+    marginLeft: 8,
+    color: '#333',
+  },
+  changePasswordButton: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  changePasswordText: {
+    color: '#FF5722',
     fontSize: 16,
   },
   saveButton: {
-    backgroundColor: '#F4845F',
-    padding: 16,
+    backgroundColor: '#FF5722',
+    paddingVertical: 16,
     borderRadius: 8,
     alignItems: 'center',
-    marginTop: 16,
+    marginTop: 10,
+  },
+  saveButtonDisabled: {
+    backgroundColor: '#FFCCBC',
   },
   saveButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
+    color: '#FFFFFF',
     fontSize: 16,
+    fontWeight: 'bold',
   },
 });
 
