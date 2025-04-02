@@ -1,9 +1,11 @@
 // src/screens/HomeScreen.js
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TextInput, Image, TouchableOpacity, FlatList } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-const HomeScreen = () => {
+const HomeScreen = ({ navigation }) => {
+  const [searchText, setSearchText] = useState('');
+  
   const featuredRestaurants = [
     {
       id: '1',
@@ -63,8 +65,32 @@ const HomeScreen = () => {
     }
   ];
 
+  const handleSearch = (text) => {
+    setSearchText(text);
+    // You could implement filtering logic here if needed
+  };
+
+  const navigateToRestaurant = (restaurant) => {
+    navigation.navigate('RestaurantDetail', { 
+      id: restaurant.id,
+      name: restaurant.name,
+      image: restaurant.image,
+      // Pass any other data you need
+    });
+  };
+
+  const navigateToCategory = (category) => {
+    navigation.navigate('RestaurantsList', {
+      category: category.name,
+      // You could pass additional filtering parameters
+    });
+  };
+
   const renderFeaturedItem = ({ item }) => (
-    <TouchableOpacity style={styles.featuredCard}>
+    <TouchableOpacity 
+      style={styles.featuredCard}
+      onPress={() => navigateToRestaurant(item)}
+    >
       <Image source={item.image} style={styles.featuredImage} />
       {item.discount && (
         <View style={styles.discountBadge}>
@@ -79,7 +105,10 @@ const HomeScreen = () => {
   );
 
   const renderCategoryItem = ({ item }) => (
-    <TouchableOpacity style={styles.categoryItem}>
+    <TouchableOpacity 
+      style={styles.categoryItem}
+      onPress={() => navigateToCategory(item)}
+    >
       <View style={styles.categoryIcon}>
         <Ionicons name={item.icon} size={24} color="#333" />
       </View>
@@ -88,7 +117,10 @@ const HomeScreen = () => {
   );
 
   const renderPopularItem = ({ item }) => (
-    <TouchableOpacity style={styles.popularCard}>
+    <TouchableOpacity 
+      style={styles.popularCard}
+      onPress={() => navigateToRestaurant(item)}
+    >
       <Image source={item.image} style={styles.popularImage} />
       <Text style={styles.popularName}>{item.name}</Text>
       <View style={styles.ratingContainer}>
@@ -119,7 +151,14 @@ const HomeScreen = () => {
           <TextInput
             style={styles.searchInput}
             placeholder="Find restaurants, cuisines..."
+            value={searchText}
+            onChangeText={handleSearch}
           />
+          {searchText.length > 0 && (
+            <TouchableOpacity onPress={() => setSearchText('')}>
+              <Ionicons name="close-circle" size={20} color="#999" />
+            </TouchableOpacity>
+          )}
         </View>
 
         {/* Category Filters */}
@@ -179,8 +218,6 @@ const HomeScreen = () => {
           />
         </View>
       </ScrollView>
-
-      
     </View>
   );
 };

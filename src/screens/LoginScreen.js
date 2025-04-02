@@ -1,6 +1,15 @@
 // src/screens/LoginScreen.js
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, SafeAreaView } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { 
+  View, 
+  Text, 
+  StyleSheet, 
+  TextInput, 
+  TouchableOpacity, 
+  SafeAreaView, 
+  ActivityIndicator,
+  Alert
+} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ORDERUP_SERVER } from "@env";
 
@@ -8,14 +17,17 @@ const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
 
+  // Debug the API URL to ensure environment variable is loading correctly
+  useEffect(() => {
+    console.log('API URL:', ORDERUP_SERVER);
+  }, []);
 
   const validate = () => {
     const newErrors = {};
-    
     if (!email) newErrors.email = 'Email is required';
     else if (!/\S+@\S+\.\S+/.test(email)) newErrors.email = 'Email is invalid';
-    
     if (!password) newErrors.password = 'Password is required';
     
     setErrors(newErrors);
@@ -23,35 +35,58 @@ const LoginScreen = ({ navigation }) => {
   };
 
   const handleLogin = async () => {
-    //email and password validation
-    if(!validate()) return;
+    // Email and password validation
+    if (!validate()) return;
+    
+    setLoading(true);
+    setErrors({});
 
-    //try..catch block
     try {
-      //await endpoint
-      const response = await fetch( `${ ORDERUP_SERVER }/api/auth/login`, {
+      // Set a timeout to prevent hanging UI
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Request timed out - check if server is running')), 10000)
+      );
+      
+      // Your existing fetch call
+      const fetchPromise = fetch(`${ORDERUP_SERVER}/api/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ email, password }),
       });
+      
+      // Race the fetch against the timeout
+      const response = await Promise.race([fetchPromise, timeoutPromise]);
+      
       const data = await response.json();
-      //error to login
-      if(!response.ok) {
-        throw new Error(data.message|| "Login Failed!");
+      
+      // Error to login
+      if (!response.ok) {
+        throw new Error(data.message || "Login Failed!");
       }
-      //store token
-      await AsyncStorage.setItem("user", JSON.stringify(data.user));//user
-      await AsyncStorage.setItem("token", data.token);//jwt
-
-      //navigate to main screen
+      
+      // Store token
+      await AsyncStorage.setItem("user", JSON.stringify(data.user)); // User
+      await AsyncStorage.setItem("token", data.token); // JWT
+      
+      // Navigate to main screen
       navigation.navigate("Main");
-
-    } catch(err) {
-      setErrors((prev) => ({...prev, general: err.message}));
-    };
-
+    } catch (err) {
+      console.log('Login error:', err);
+      
+      // Show error in UI
+      if (err.message.includes('timed out')) {
+        Alert.alert(
+          'Connection Error', 
+          'Unable to connect to the server. Please check your internet connection and make sure the server is running.'
+        );
+      } else {
+        setErrors((prev) => ({...prev, general: err.message}));
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -59,7 +94,14 @@ const LoginScreen = ({ navigation }) => {
       <View style={styles.content}>
         <Text style={styles.logo}>OrderUp</Text>
         <Text style={styles.tagline}>Skip the wait, not the experience</Text>
+        
         <View style={styles.form}>
+          {errors.general && (
+            <View style={styles.generalError}>
+              <Text style={styles.generalErrorText}>{errors.general}</Text>
+            </View>
+          )}
+          
           <View style={styles.formGroup}>
             <Text style={styles.label}>Email</Text>
             <TextInput
@@ -90,10 +132,15 @@ const LoginScreen = ({ navigation }) => {
           </TouchableOpacity>
           
           <TouchableOpacity
-            style={styles.button}
+            style={[styles.button, loading && styles.buttonDisabled]}
             onPress={handleLogin}
+            disabled={loading}
           >
-            <Text style={styles.buttonText}>Login</Text>
+            {loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.buttonText}>Login</Text>
+            )}
           </TouchableOpacity>
           
           <View style={styles.signupContainer}>
@@ -135,6 +182,18 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 400,
   },
+  generalError: {
+    backgroundColor: '#ffebee',
+    padding: 10,
+    borderRadius: 5,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#ffcdd2',
+  },
+  generalErrorText: {
+    color: '#c62828',
+    textAlign: 'center',
+  },
   formGroup: {
     marginBottom: 16,
   },
@@ -171,6 +230,9 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 8,
     alignItems: 'center',
+  },
+  buttonDisabled: {
+    backgroundColor: '#ffab91',
   },
   buttonText: {
     color: 'white',

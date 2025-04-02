@@ -59,6 +59,7 @@ const SignupScreen = ({ navigation }) => {
       navigation.navigate('Login');
 
     } catch (error) {
+      console.log(error);
       Alert.alert('Error', error.message);
     } finally {
       setLoading(false);
