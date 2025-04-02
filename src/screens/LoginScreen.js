@@ -8,7 +8,9 @@ import {
   TouchableOpacity, 
   SafeAreaView, 
   ActivityIndicator,
-  Alert
+  Alert,
+  KeyboardAvoidingView,
+  Platform
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ORDERUP_SERVER } from "@env";
@@ -18,11 +20,12 @@ const LoginScreen = ({ navigation }) => {
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Debug the API URL to ensure environment variable is loading correctly
   useEffect(() => {
     console.log('API URL:', ORDERUP_SERVER);
-  }, []);
+  }, []); // Empty dependency array makes it run only once
 
   const validate = () => {
     const newErrors = {};
@@ -35,13 +38,19 @@ const LoginScreen = ({ navigation }) => {
   };
 
   const handleLogin = async () => {
+    // Prevent duplicate submissions
+    if (isSubmitting || loading) return;
+    
     // Email and password validation
     if (!validate()) return;
     
     setLoading(true);
+    setIsSubmitting(true);
     setErrors({});
 
     try {
+      console.log('Attempting login with:', email);
+      
       // Set a timeout to prevent hanging UI
       const timeoutPromise = new Promise((_, reject) => 
         setTimeout(() => reject(new Error('Request timed out - check if server is running')), 10000)
@@ -70,8 +79,11 @@ const LoginScreen = ({ navigation }) => {
       await AsyncStorage.setItem("user", JSON.stringify(data.user)); // User
       await AsyncStorage.setItem("token", data.token); // JWT
       
-      // Navigate to main screen
-      navigation.navigate("Main");
+      // Navigate to main screen with reset to prevent going back
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "Main" }]
+      });
     } catch (err) {
       console.log('Login error:', err);
       
@@ -86,72 +98,108 @@ const LoginScreen = ({ navigation }) => {
       }
     } finally {
       setLoading(false);
+      setIsSubmitting(false);
     }
   };
 
+  const handleForgotPassword = () => {
+    // In a real app, this would navigate to a password reset screen
+    Alert.alert(
+      'Password Reset',
+      'A password reset link will be sent to your email address.',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel'
+        },
+        {
+          text: 'Send Link',
+          onPress: () => {
+            if (!email) {
+              Alert.alert('Please enter your email address first');
+            } else {
+              Alert.alert('Password reset link sent to your email');
+            }
+          }
+        }
+      ]
+    );
+  };
+
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.content}>
-        <Text style={styles.logo}>OrderUp</Text>
-        <Text style={styles.tagline}>Skip the wait, not the experience</Text>
-        
-        <View style={styles.form}>
-          {errors.general && (
-            <View style={styles.generalError}>
-              <Text style={styles.generalErrorText}>{errors.general}</Text>
-            </View>
-          )}
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={styles.container}
+    >
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.content}>
+          <Text style={styles.logo}>OrderUp</Text>
+          <Text style={styles.tagline}>Skip the wait, not the experience</Text>
           
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>Email</Text>
-            <TextInput
-              style={[styles.input, errors.email && styles.inputError]}
-              value={email}
-              onChangeText={setEmail}
-              placeholder="Enter your email"
-              keyboardType="email-address"
-              autoCapitalize="none"
-            />
-            {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
-          </View>
-          
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>Password</Text>
-            <TextInput
-              style={[styles.input, errors.password && styles.inputError]}
-              value={password}
-              onChangeText={setPassword}
-              placeholder="Enter your password"
-              secureTextEntry
-            />
-            {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
-          </View>
-          
-          <TouchableOpacity style={styles.forgotPassword}>
-            <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity
-            style={[styles.button, loading && styles.buttonDisabled]}
-            onPress={handleLogin}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.buttonText}>Login</Text>
+          <View style={styles.form}>
+            {errors.general && (
+              <View style={styles.generalError}>
+                <Text style={styles.generalErrorText}>{errors.general}</Text>
+              </View>
             )}
-          </TouchableOpacity>
-          
-          <View style={styles.signupContainer}>
-            <Text style={styles.signupText}>Don't have an account? </Text>
-            <TouchableOpacity onPress={() => navigation.navigate('Signup')}>
-              <Text style={styles.signupLink}>Sign Up</Text>
+            
+            <View style={styles.formGroup}>
+              <Text style={styles.label}>Email</Text>
+              <TextInput
+                style={[styles.input, errors.email && styles.inputError]}
+                value={email}
+                onChangeText={setEmail}
+                placeholder="Enter your email"
+                keyboardType="email-address"
+                autoCapitalize="none"
+                returnKeyType="next"
+              />
+              {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
+            </View>
+            
+            <View style={styles.formGroup}>
+              <Text style={styles.label}>Password</Text>
+              <TextInput
+                style={[styles.input, errors.password && styles.inputError]}
+                value={password}
+                onChangeText={setPassword}
+                placeholder="Enter your password"
+                secureTextEntry
+                returnKeyType="done"
+                onSubmitEditing={handleLogin}
+              />
+              {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
+            </View>
+            
+            <TouchableOpacity 
+              style={styles.forgotPassword}
+              onPress={handleForgotPassword}
+            >
+              <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
             </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={[styles.button, (loading || isSubmitting) && styles.buttonDisabled]}
+              onPress={handleLogin}
+              disabled={loading || isSubmitting}
+            >
+              {loading ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={styles.buttonText}>Login</Text>
+              )}
+            </TouchableOpacity>
+            
+            <View style={styles.signupContainer}>
+              <Text style={styles.signupText}>Don't have an account? </Text>
+              <TouchableOpacity onPress={() => navigation.navigate('Signup')}>
+                <Text style={styles.signupLink}>Sign Up</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
-      </View>
-    </SafeAreaView>
+      </SafeAreaView>
+    </KeyboardAvoidingView>
   );
 };
 
@@ -159,6 +207,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
+  },
+  safeArea: {
+    flex: 1,
   },
   content: {
     flex: 1,
@@ -236,8 +287,8 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: 'white',
-    fontWeight: 'bold',
     fontSize: 16,
+    fontWeight: 'bold',
   },
   signupContainer: {
     flexDirection: 'row',

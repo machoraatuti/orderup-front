@@ -1,5 +1,5 @@
 module.exports = function(api) {
-  api.cache(true);
+  api.cache(false); // Change this to false to disable caching
   return {
     presets: ['babel-preset-expo'],
     plugins: [
