@@ -1,4 +1,3 @@
-// src/screens/ProfileScreen.js
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
@@ -6,29 +5,28 @@ import { Ionicons } from '@expo/vector-icons';
 import { ORDERUP_SERVER } from "@env";
 
 const ProfileScreen = ({ navigation }) => {
-  //user data
-  const [ user, setUser ] = useState(null);
-
+  // user data
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
-    //fetch user data
+    // fetch user data
     const fetchData = async () => {
-      //try..catch block
       try {
-        //retrieve user data
+        // retrieve user data
         const savedUser = await AsyncStorage.getItem("user");
-        if(savedUser) {
-          //set state and change to object
-          setUser(JSON.parse(savedUser));
+        if (savedUser) {
+          // set state and change to object
+          const parsedUser = JSON.parse(savedUser);
+          console.log("Retrieved User:", parsedUser);  // Log to check the structure
+          setUser(parsedUser);
         }
-      } catch(err) {
-        console.err("Error retrieving user data:", err);
-      };
+      } catch (err) {
+        console.error("Error retrieving user data:", err);
+      }
     };
-    //call fetch 
     fetchData();
   }, []);
-  
+
   // Mock order history
   const orderHistory = [
     {
@@ -48,58 +46,55 @@ const ProfileScreen = ({ navigation }) => {
       status: 'Delivered',
     },
   ];
-  
-  const handleLogout = async() => {
-    //try..catch block
+
+  const handleLogout = async () => {
     try {
-      //retrieve token for logout
+      // retrieve token for logout
       const token = await AsyncStorage.getItem("token");
-      //validation for token
-      if(!token) {
+      if (!token) {
         console.warn("No Token");
       }
 
-      const response = await fetch(`${ ORDERUP_SERVER }/api/auth/logout`, {
+      const response = await fetch(`${ORDERUP_SERVER}/api/auth/logout`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`//attach token to auth header
+          Authorization: `Bearer ${token}` // attach token to auth header
         },
         body: JSON.stringify({ token })
       });
 
-      if(response.ok) {
+      if (response.ok) {
         await AsyncStorage.removeItem("token");
         navigation.reset({
           index: 0,
           routes: [{ name: "Login" }]
         });
       } else {
-        console.error("Logout failed:", await response.text() );
+        console.error("Logout failed:", await response.text());
       }
 
-      
-    } catch(err) {
+    } catch (err) {
       console.error("Logout Error", err);
-    };
+    }
   };
-  
+
   return (
     <ScrollView style={styles.container}>
       {/* Profile Header */}
       <View style={styles.profileHeader}>
-        { user ? (
+              {user ? (
           <>
-            <Image source={{ uri: user.profileImage }} style={styles.profileImage} />
-            <Text style={styles.profileName}>{user.name}</Text>
-            <Text style={styles.profileEmail}>{user.email}</Text>
+            <Image source={{ uri: user.profileImage || 'default-image-url' }} style={styles.profileImage} />
+            <Text style={styles.profileName}>{user.name || 'No name available'}</Text>
+            <Text style={styles.profileEmail}>{user.email || 'No email available'}</Text>
             <Text style={styles.profilePhone}>{user.phone}</Text>
           </>
-        ): (
-          <Text>Loading profile...</Text>
-        ) }
+        ) : (
+          <Text>Loading profile...</Text>  // This is the corrected part
+        )}
       </View>
-      
+
       {/* Account Settings */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Account Settings</Text>
@@ -112,7 +107,7 @@ const ProfileScreen = ({ navigation }) => {
           <Text style={styles.settingLabel}>Personal Information</Text>
           <Ionicons name="chevron-forward" size={20} color="#ccc" />
         </TouchableOpacity>
-        
+
         <TouchableOpacity 
           style={styles.settingItem}
           onPress={() => navigation.navigate('SavedAddresses')}
@@ -121,7 +116,7 @@ const ProfileScreen = ({ navigation }) => {
           <Text style={styles.settingLabel}>Saved Addresses</Text>
           <Ionicons name="chevron-forward" size={20} color="#ccc" />
         </TouchableOpacity>
-        
+
         <TouchableOpacity 
           style={styles.settingItem}
           onPress={() => navigation.navigate('PaymentMethods')}
@@ -130,7 +125,7 @@ const ProfileScreen = ({ navigation }) => {
           <Text style={styles.settingLabel}>Payment Methods</Text>
           <Ionicons name="chevron-forward" size={20} color="#ccc" />
         </TouchableOpacity>
-        
+
         <TouchableOpacity 
           style={styles.settingItem}
           onPress={() => navigation.navigate('Notifications')}
@@ -140,7 +135,7 @@ const ProfileScreen = ({ navigation }) => {
           <Ionicons name="chevron-forward" size={20} color="#ccc" />
         </TouchableOpacity>
       </View>
-      
+
       {/* Order History */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Order History</Text>
@@ -162,7 +157,7 @@ const ProfileScreen = ({ navigation }) => {
           </View>
         ))}
       </View>
-      
+
       {/* Logout Button */}
       <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
         <Ionicons name="log-out-outline" size={20} color="white" style={{ marginRight: 8 }} />
@@ -202,7 +197,7 @@ const styles = StyleSheet.create({
   },
   profilePhone: {
     fontSize: 16,
-    color: '#666',
+    color: '000',
   },
   section: {
     backgroundColor: 'white',
@@ -220,67 +215,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 16,
-  },
-  settingItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-  },
-  settingIcon: {
-    marginRight: 12,
-  },
-  settingLabel: {
-    fontSize: 16,
-    flex: 1,
-  },
-  orderItem: {
-    backgroundColor: '#f5f5f5',
-    borderRadius: 8,
-    padding: 16,
-    marginBottom: 12,
-  },
-  orderHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 8,
-  },
-  orderId: {
-    fontWeight: 'bold',
-  },
-  orderStatus: {
-    color: '#4CAF50',
-  },
-  orderRestaurant: {
-    fontSize: 16,
-    fontWeight: '500',
-    marginBottom: 4,
-  },
-  orderDate: {
-    color: '#666',
-    marginBottom: 8,
-  },
-  orderItems: {
-    marginBottom: 12,
-  },
-  orderFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  orderTotal: {
-    fontWeight: 'bold',
-  },
-  reorderButton: {
-    backgroundColor: '#FF5722',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 4,
-  },
-  reorderButtonText: {
-    color: 'white',
-    fontWeight: '500',
   },
   logoutButton: {
     backgroundColor: '#f44336',

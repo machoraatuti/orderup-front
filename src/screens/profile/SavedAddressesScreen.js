@@ -1,10 +1,9 @@
-// src/screens/profile/SavedAddressesScreen.js
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-const SavedAddressesScreen = () => {
-  const addresses = [
+const SavedAddressesScreen = ({ navigation }) => {
+  const [addresses, setAddresses] = useState([
     {
       id: '1',
       type: 'Home',
@@ -19,7 +18,15 @@ const SavedAddressesScreen = () => {
       details: 'Nairobi CBD, Kenya',
       isDefault: false
     }
-  ];
+  ]);
+
+  const handleEdit = (address) => {
+    navigation.navigate('EditAddressScreen', { address }); // Pass address data to the Edit screen
+  };
+
+  const handleAddNewAddress = () => {
+    navigation.navigate('AddAddress'); // Navigate to the Add Address screen
+  };
 
   return (
     <ScrollView style={styles.container}>
@@ -34,7 +41,7 @@ const SavedAddressesScreen = () => {
                 </View>
               )}
             </View>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={() => handleEdit(address)}>
               <Ionicons name="create-outline" size={20} color="#666" />
             </TouchableOpacity>
           </View>
@@ -44,7 +51,7 @@ const SavedAddressesScreen = () => {
         </View>
       ))}
       
-      <TouchableOpacity style={styles.addButton}>
+      <TouchableOpacity style={styles.addButton} onPress={handleAddNewAddress}>
         <Ionicons name="add-circle-outline" size={24} color="#F4845F" />
         <Text style={styles.addButtonText}>Add New Address</Text>
       </TouchableOpacity>
@@ -65,6 +72,11 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     borderWidth: 1,
     borderColor: '#eee',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   addressHeader: {
     flexDirection: 'row',
