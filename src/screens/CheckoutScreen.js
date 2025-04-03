@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { ORDERUP_SERVER } from "@env";
 
 const CheckoutScreen = ({ navigation }) => {
   const [deliveryAddress, setDeliveryAddress] = useState({
@@ -76,7 +75,7 @@ const CheckoutScreen = ({ navigation }) => {
 
     navigation.reset({
       index: 0,
-      routes: [{ name: 'Main' }],
+      routes: [{ name: 'MainContent' }],
     });
 };
 
