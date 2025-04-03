@@ -135,9 +135,7 @@ const EditProfileScreen = ({ navigation }) => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView style={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>Edit Profile</Text>
-        </View>
+        {/* We're removing the custom header since the navigation header already shows "Edit Profile" */}
         
         <View style={styles.formContainer}>
           <View style={styles.formGroup}>
@@ -167,7 +165,7 @@ const EditProfileScreen = ({ navigation }) => {
             <Text style={styles.label}>Phone Number</Text>
             <TextInput
               style={styles.input}
-              placeholder="254012345678"
+              placeholder="Enter your phone number"
               value={userData.phone}
               onChangeText={(text) => setUserData((prev) => ({ ...prev, phone: text }))}
               keyboardType="phone-pad"
@@ -212,20 +210,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  header: {
-    paddingVertical: 15,
-    paddingHorizontal: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
-    backgroundColor: '#fff',
-    marginBottom: 20,
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    textAlign: 'center',
-    color: '#333',
-  },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -239,6 +223,7 @@ const styles = StyleSheet.create({
   },
   formContainer: {
     paddingHorizontal: 20,
+    paddingTop: 20,
   },
   formGroup: {
     marginBottom: 20,
@@ -306,5 +291,3 @@ const styles = StyleSheet.create({
 });
 
 export default EditProfileScreen;
-
-
