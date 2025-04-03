@@ -1,4 +1,3 @@
-// src/screens/profile/EditProfileScreen.js
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -43,7 +42,12 @@ const EditProfileScreen = ({ navigation }) => {
 
       const data = await response.json();
       if (response.ok) {
-        setUserData({ name: data.name, email: data.email, phone: '' });
+        // Retain the phone value fetched from AsyncStorage or server
+        setUserData((prev) => ({
+          name: data.name,
+          email: data.email,
+          phone: data.phone || prev.phone, // Use previous state if phone is not available
+        }));
       } else {
         Alert.alert('Error', data.message);
       }
@@ -55,8 +59,6 @@ const EditProfileScreen = ({ navigation }) => {
   };
 
   useEffect(() => {
-    fetchProfileData();
-
     const loadPhoneFromStorage = async () => {
       const savedPhone = await AsyncStorage.getItem('phone');
       if (savedPhone) {
@@ -64,7 +66,8 @@ const EditProfileScreen = ({ navigation }) => {
       }
     };
 
-    loadPhoneFromStorage();
+    loadPhoneFromStorage(); // Load phone from AsyncStorage first
+    fetchProfileData(); // Then fetch profile data from the server
   }, []);
 
   const handleSaveChanges = async () => {
