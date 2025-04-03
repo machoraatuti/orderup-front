@@ -82,7 +82,7 @@ const LoginScreen = ({ navigation }) => {
       // Navigate to main screen with reset to prevent going back
       navigation.reset({
         index: 0,
-        routes: [{ name: "Main" }]
+        routes: [{ name: "MainContent" }]
       });
     } catch (err) {
       console.log('Login error:', err);

@@ -26,21 +26,8 @@ import FAQScreen from '../screens/support/FAQScreen';
 import ContactSupportScreen from '../screens/support/ContactSupportScreen';
 import TermsConditionsScreen from '../screens/support/TermsConditionsScreen';
 
-// Authentication screens
-import LoginScreen from '../screens/LoginScreen';
-import SignupScreen from '../screens/SignupScreen';
-
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
-const AuthStack = createStackNavigator();
-
-// Auth Navigator
-const AuthNavigator = () => (
-  <AuthStack.Navigator screenOptions={{ headerShown: false }}>
-    <AuthStack.Screen name="Login" component={LoginScreen} />
-    <AuthStack.Screen name="Signup" component={SignupScreen} />
-  </AuthStack.Navigator>
-);
 
 // Home Stack
 const HomeStack = () => (
@@ -198,7 +185,7 @@ const ProfileStack = () => (
 );
 
 // Main Tab Navigator
-const TabNavigator = () => (
+const MainNavigator = () => (
   <Tab.Navigator
     screenOptions={({ route }) => ({
       tabBarIcon: ({ focused, color, size }) => {
@@ -228,26 +215,5 @@ const TabNavigator = () => (
     />
   </Tab.Navigator>
 );
-
-// Root Navigator - prevent going back to Auth after login
-const MainNavigator = () => {
-  return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen 
-        name="Auth" 
-        component={AuthNavigator} 
-        options={{ gestureEnabled: false }} // Disable swipe back
-      />
-      <Stack.Screen 
-        name="Main" 
-        component={TabNavigator} 
-        options={{ 
-          gestureEnabled: false, // Disable swipe back to Auth
-          headerLeft: null // Remove back button
-        }} 
-      />
-    </Stack.Navigator>
-  );
-};
 
 export default MainNavigator;

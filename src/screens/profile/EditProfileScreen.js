@@ -9,9 +9,11 @@ import {
   ScrollView,
   ActivityIndicator,
   Alert,
+  SafeAreaView,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ORDERUP_SERVER } from '@env';
+import { Ionicons } from '@expo/vector-icons';
 
 const EditProfileScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
@@ -114,6 +116,13 @@ const EditProfileScreen = ({ navigation }) => {
     }
   };
 
+  const handleChangePassword = () => {
+    // Navigate to password change screen or show a modal
+    Alert.alert('Change Password', 'Password change functionality will be implemented here');
+    // For a real implementation, you would navigate to a change password screen:
+    // navigation.navigate('ChangePassword');
+  };
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -124,52 +133,98 @@ const EditProfileScreen = ({ navigation }) => {
   }
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.formGroup}>
-        <Text style={styles.label}>Full Name</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Name"
-          value={userData.name}
-          onChangeText={(text) => setUserData((prev) => ({ ...prev, name: text }))}
-        />
-      </View>
+    <SafeAreaView style={styles.safeArea}>
+      <ScrollView style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Edit Profile</Text>
+        </View>
+        
+        <View style={styles.formContainer}>
+          <View style={styles.formGroup}>
+            <Text style={styles.label}>Full Name</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Enter your full name"
+              value={userData.name}
+              onChangeText={(text) => setUserData((prev) => ({ ...prev, name: text }))}
+            />
+          </View>
 
-      <View style={styles.formGroup}>
-        <Text style={styles.label}>Email</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Email"
-          value={userData.email}
-          onChangeText={(text) => setUserData((prev) => ({ ...prev, email: text }))}
-          keyboardType="email-address"
-        />
-      </View>
+          <View style={styles.formGroup}>
+            <Text style={styles.label}>Email</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Enter your email"
+              value={userData.email}
+              onChangeText={(text) => setUserData((prev) => ({ ...prev, email: text }))}
+              keyboardType="email-address"
+              editable={false} // Make email non-editable as shown in screenshot
+            />
+            <Text style={styles.emailNote}>Email cannot be changed</Text>
+          </View>
 
-      <View style={styles.formGroup}>
-        <Text style={styles.label}>Phone Number</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="254712345678"
-          value={userData.phone}
-          onChangeText={(text) => setUserData((prev) => ({ ...prev, phone: text }))}
-          keyboardType="phone-pad"
-        />
-      </View>
+          <View style={styles.formGroup}>
+            <Text style={styles.label}>Phone Number</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="254012345678"
+              value={userData.phone}
+              onChangeText={(text) => setUserData((prev) => ({ ...prev, phone: text }))}
+              keyboardType="phone-pad"
+            />
+          </View>
 
-      <TouchableOpacity style={styles.saveButton} onPress={handleSaveChanges} disabled={saving}>
-        <Text style={styles.saveButtonText}>
-          {saving ? 'Saving...' : 'Save Changes'}
-        </Text>
-      </TouchableOpacity>
-    </ScrollView>
+          <View style={styles.formGroup}>
+            <View style={styles.passwordSection}>
+              <View style={styles.passwordHeader}>
+                <Ionicons name="lock-closed-outline" size={20} color="#888" />
+                <Text style={styles.passwordLabel}>Password</Text>
+              </View>
+              <TouchableOpacity onPress={handleChangePassword}>
+                <View style={styles.changePasswordButton}>
+                  <Text style={styles.changePasswordText}>Change Password</Text>
+                  <Ionicons name="chevron-forward" size={20} color="#FF5722" />
+                </View>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          <TouchableOpacity 
+            style={styles.saveButton} 
+            onPress={handleSaveChanges} 
+            disabled={saving}
+          >
+            <Text style={styles.saveButtonText}>
+              {saving ? 'Saving...' : 'Save Changes'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
     backgroundColor: '#f5f5f5',
+  },
+  container: {
+    flex: 1,
+  },
+  header: {
+    paddingVertical: 15,
+    paddingHorizontal: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
+    backgroundColor: '#fff',
+    marginBottom: 20,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    textAlign: 'center',
+    color: '#333',
   },
   loadingContainer: {
     flex: 1,
@@ -182,9 +237,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#666',
   },
+  formContainer: {
+    paddingHorizontal: 20,
+  },
   formGroup: {
     marginBottom: 20,
-    paddingHorizontal: 20,
   },
   label: {
     fontSize: 16,
@@ -196,17 +253,50 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderWidth: 1,
     borderColor: '#E0E0E0',
-    borderRadius: 8,
-    padding: 12,
+    borderRadius: 10,
+    padding: 14,
     fontSize: 16,
+  },
+  emailNote: {
+    fontSize: 12,
+    color: '#888',
+    marginTop: 4,
+  },
+  passwordSection: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    borderRadius: 10,
+    padding: 14,
+  },
+  passwordHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  passwordLabel: {
+    fontSize: 16,
+    fontWeight: '500',
+    marginLeft: 8,
+    color: '#333',
+  },
+  changePasswordButton: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 5,
+  },
+  changePasswordText: {
+    color: '#FF5722',
+    fontSize: 15,
   },
   saveButton: {
     backgroundColor: '#FF5722',
     paddingVertical: 16,
-    borderRadius: 8,
+    borderRadius: 10,
     alignItems: 'center',
-    marginHorizontal: 20,
     marginTop: 10,
+    marginBottom: 30,
   },
   saveButtonText: {
     color: '#FFFFFF',
