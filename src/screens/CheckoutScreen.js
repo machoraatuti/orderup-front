@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { ORDERUP_SERVER } from "@env";
 
 const CheckoutScreen = ({ navigation }) => {
   const [deliveryAddress, setDeliveryAddress] = useState({
@@ -45,7 +44,7 @@ const CheckoutScreen = ({ navigation }) => {
 
     if (paymentMethod === 'mpesa') {
       try {
-        const response = await fetch(`${ORDERUP_SERVER}/api/checkout`, {
+        const response = await fetch(`${ ORDERUP_SERVER }/api/checkout`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
