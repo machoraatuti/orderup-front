@@ -134,7 +134,7 @@ const AddAddressScreen = ({ navigation }) => {
 
         {/* Street Address */}
         <View style={styles.formGroup}>
-          <Text style={styles.label}>Street Addres</Text>
+          <Text style={styles.label}>Street address</Text>
           <TextInput
             style={styles.input}
             value={address.street}
