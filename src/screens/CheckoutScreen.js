@@ -1,6 +1,6 @@
-// src/screens/CheckoutScreen.js
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const CheckoutScreen = ({ navigation }) => {
   const [deliveryAddress, setDeliveryAddress] = useState({
@@ -9,20 +9,81 @@ const CheckoutScreen = ({ navigation }) => {
     city: 'Nairobi',
     instructions: ''
   });
-  
+
   const [paymentMethod, setPaymentMethod] = useState('mpesa');
-  
+  const [phoneNumber, setPhoneNumber] = useState('');
+
+  // Fetch the phone number from AsyncStorage
+  useEffect(() => {
+    const loadPhoneFromStorage = async () => {
+      const savedPhone = await AsyncStorage.getItem('phone');
+      if (savedPhone) {
+        setPhoneNumber(savedPhone); // Set the phone number
+      }
+    };
+
+    loadPhoneFromStorage();
+  }, []);
+
   const updateAddress = (field, value) => {
     setDeliveryAddress(prev => ({
       ...prev,
       [field]: value
     }));
   };
-  
+
+  const placeOrder = async () => {
+    console.log('Place order button pressed'); // Debugging line
+
+    if (!phoneNumber) {
+      Alert.alert('Error', 'Phone number is missing');
+      return;
+    }
+
+    console.log('Sending data to server...'); // Debugging line
+
+    if (paymentMethod === 'mpesa') {
+      try {
+        const response = await fetch('https://4958-196-96-184-180.ngrok-free.app/api/checkout', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            phoneNumber: phoneNumber, // Use the phone number stored locally
+            amount: 1359, // The total amount
+            accountReference: 'order12345', // Unique reference for the transaction
+            transactionDesc: 'Payment for order', // Description of the transaction
+          }),
+        });
+
+        console.log('Response received:', response); // Debugging line
+
+        const data = await response.json();
+        console.log('Parsed response data:', data); // Debugging line
+
+        if (data.ResponseCode === '0') {
+          Alert.alert('Success', 'Payment initiated successfully!');
+        }
+      } catch (error) {
+        console.error('Fetch error:', error); // Debugging line
+        Alert.alert('Error', 'Error initiating payment: ' + error.message);
+      }
+    } else {
+      Alert.alert('Success', 'Order placed successfully!');
+    }
+
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'Main' }],
+    });
+};
+
+
   return (
     <ScrollView style={styles.container}>
       <Text style={styles.headerText}>Checkout</Text>
-      
+
       {/* Delivery Address */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Delivery Address</Text>
@@ -65,25 +126,25 @@ const CheckoutScreen = ({ navigation }) => {
           />
         </View>
       </View>
-      
+
       {/* Payment Method */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Payment Method</Text>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={[styles.paymentOption, paymentMethod === 'mpesa' && styles.selectedPayment]}
           onPress={() => setPaymentMethod('mpesa')}
         >
           <Text style={styles.paymentOptionText}>M-Pesa</Text>
           {paymentMethod === 'mpesa' && <Text style={styles.checkmark}>✓</Text>}
         </TouchableOpacity>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={[styles.paymentOption, paymentMethod === 'card' && styles.selectedPayment]}
           onPress={() => setPaymentMethod('card')}
         >
           <Text style={styles.paymentOptionText}>Credit/Debit Card</Text>
           {paymentMethod === 'card' && <Text style={styles.checkmark}>✓</Text>}
         </TouchableOpacity>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={[styles.paymentOption, paymentMethod === 'cash' && styles.selectedPayment]}
           onPress={() => setPaymentMethod('cash')}
         >
@@ -91,38 +152,31 @@ const CheckoutScreen = ({ navigation }) => {
           {paymentMethod === 'cash' && <Text style={styles.checkmark}>✓</Text>}
         </TouchableOpacity>
       </View>
-      
+
       {/* Order Summary */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Order Summary</Text>
         <View style={styles.summaryRow}>
           <Text style={styles.summaryLabel}>Subtotal</Text>
-          <Text style={styles.summaryValue}>KSh 1,120.00</Text>
+          <Text style={styles.summaryValue}>KSh 1,120</Text>
         </View>
         <View style={styles.summaryRow}>
           <Text style={styles.summaryLabel}>Delivery Fee</Text>
-          <Text style={styles.summaryValue}>KSh 150.00</Text>
+          <Text style={styles.summaryValue}>KSh 150</Text>
         </View>
         <View style={styles.summaryRow}>
           <Text style={styles.summaryLabel}>Tax</Text>
-          <Text style={styles.summaryValue}>KSh 89.60</Text>
+          <Text style={styles.summaryValue}>KSh 80</Text>
         </View>
         <View style={[styles.summaryRow, styles.totalRow]}>
           <Text style={styles.totalLabel}>Total</Text>
-          <Text style={styles.totalValue}>KSh 1,359.60</Text>
+          <Text style={styles.totalValue}>KSh 1,359</Text>
         </View>
       </View>
-      
-      <TouchableOpacity 
+
+      <TouchableOpacity
         style={styles.placeOrderButton}
-        onPress={() => {
-          // In a real app, handle order processing here
-          alert('Order placed successfully!');
-          navigation.reset({
-            index: 0,
-            routes: [{ name: 'Main' }],
-          });
-        }}
+        onPress={placeOrder}
       >
         <Text style={styles.placeOrderButtonText}>Place Order</Text>
       </TouchableOpacity>

@@ -1,8 +1,23 @@
 // src/screens/CartScreen.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 const CartScreen = ({ navigation }) => {
+  // Fix the back button to go to Home
+  useEffect(() => {
+    navigation.setOptions({
+      headerLeft: () => (
+        <TouchableOpacity 
+          style={{ marginLeft: 15 }} 
+          onPress={() => navigation.navigate('Home')}
+        >
+          <Ionicons name="arrow-back" size={24} color="#333" />
+        </TouchableOpacity>
+      ),
+    });
+  }, [navigation]);
+
   // Mock cart items
   const [cartItems, setCartItems] = useState([
     { 
@@ -73,41 +88,49 @@ const CartScreen = ({ navigation }) => {
   
   return (
     <View style={styles.container}>
-      <Text style={styles.headerText}>Your Cart</Text>
-      <Text style={styles.restaurantName}>{cartItems[0]?.restaurant}</Text>
-      
       <FlatList
         data={cartItems}
         renderItem={renderCartItem}
         keyExtractor={item => item.id}
         style={styles.cartList}
+        ListHeaderComponent={() => (
+          <>
+            <View style={styles.headerContainer}>
+              <Text style={styles.headerText}>Your Cart</Text>
+              <Text style={styles.restaurantName}>{cartItems[0]?.restaurant}</Text>
+            </View>
+          </>
+        )}
+        ListFooterComponent={() => (
+          <>
+            <View style={styles.totalContainer}>
+              <View style={styles.totalRow}>
+                <Text style={styles.totalLabel}>Subtotal</Text>
+                <Text style={styles.totalValue}>KSh {subtotal.toFixed(2)}</Text>
+              </View>
+              <View style={styles.totalRow}>
+                <Text style={styles.totalLabel}>Delivery Fee</Text>
+                <Text style={styles.totalValue}>KSh {deliveryFee.toFixed(2)}</Text>
+              </View>
+              <View style={styles.totalRow}>
+                <Text style={styles.totalLabel}>Tax</Text>
+                <Text style={styles.totalValue}>KSh {tax.toFixed(2)}</Text>
+              </View>
+              <View style={[styles.totalRow, styles.finalRow]}>
+                <Text style={styles.finalLabel}>Total</Text>
+                <Text style={styles.finalValue}>KSh {total.toFixed(2)}</Text>
+              </View>
+            </View>
+            
+            <TouchableOpacity 
+              style={styles.checkoutButton}
+              onPress={() => navigation.navigate('Checkout')}
+            >
+              <Text style={styles.checkoutButtonText}>Proceed to Checkout</Text>
+            </TouchableOpacity>
+          </>
+        )}
       />
-      
-      <View style={styles.totalContainer}>
-        <View style={styles.totalRow}>
-          <Text style={styles.totalLabel}>Subtotal</Text>
-          <Text style={styles.totalValue}>KSh {subtotal.toFixed(2)}</Text>
-        </View>
-        <View style={styles.totalRow}>
-          <Text style={styles.totalLabel}>Delivery Fee</Text>
-          <Text style={styles.totalValue}>KSh {deliveryFee.toFixed(2)}</Text>
-        </View>
-        <View style={styles.totalRow}>
-          <Text style={styles.totalLabel}>Tax</Text>
-          <Text style={styles.totalValue}>KSh {tax.toFixed(2)}</Text>
-        </View>
-        <View style={[styles.totalRow, styles.finalRow]}>
-          <Text style={styles.finalLabel}>Total</Text>
-          <Text style={styles.finalValue}>KSh {total.toFixed(2)}</Text>
-        </View>
-      </View>
-      
-      <TouchableOpacity 
-        style={styles.checkoutButton}
-        onPress={() => navigation.navigate('Checkout')}
-      >
-        <Text style={styles.checkoutButtonText}>Proceed to Checkout</Text>
-      </TouchableOpacity>
     </View>
   );
 };
@@ -118,6 +141,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#f9f9f9',
     padding: 16,
   },
+  headerContainer: {
+    marginBottom: 16,
+  },
   headerText: {
     fontSize: 24,
     fontWeight: 'bold',
@@ -126,7 +152,6 @@ const styles = StyleSheet.create({
   restaurantName: {
     fontSize: 16,
     color: '#666',
-    marginBottom: 16,
   },
   cartList: {
     flex: 1,
@@ -215,6 +240,7 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 8,
     alignItems: 'center',
+    marginBottom: 16,
   },
   checkoutButtonText: {
     color: 'white',

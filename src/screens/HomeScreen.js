@@ -1,9 +1,11 @@
 // src/screens/HomeScreen.js
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, Image, TouchableOpacity, FlatList } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, SafeAreaView, ScrollView, TextInput, Image, TouchableOpacity, FlatList, StatusBar, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-const HomeScreen = () => {
+const HomeScreen = ({ navigation }) => {
+  const [searchText, setSearchText] = useState('');
+  
   const featuredRestaurants = [
     {
       id: '1',
@@ -63,8 +65,32 @@ const HomeScreen = () => {
     }
   ];
 
+  const handleSearch = (text) => {
+    setSearchText(text);
+    // You could implement filtering logic here if needed
+  };
+
+  const navigateToRestaurant = (restaurant) => {
+    navigation.navigate('RestaurantDetail', { 
+      id: restaurant.id,
+      name: restaurant.name,
+      image: restaurant.image,
+      // Pass any other data you need
+    });
+  };
+
+  const navigateToCategory = (category) => {
+    navigation.navigate('RestaurantsList', {
+      category: category.name,
+      // You could pass additional filtering parameters
+    });
+  };
+
   const renderFeaturedItem = ({ item }) => (
-    <TouchableOpacity style={styles.featuredCard}>
+    <TouchableOpacity 
+      style={styles.featuredCard}
+      onPress={() => navigateToRestaurant(item)}
+    >
       <Image source={item.image} style={styles.featuredImage} />
       {item.discount && (
         <View style={styles.discountBadge}>
@@ -79,7 +105,10 @@ const HomeScreen = () => {
   );
 
   const renderCategoryItem = ({ item }) => (
-    <TouchableOpacity style={styles.categoryItem}>
+    <TouchableOpacity 
+      style={styles.categoryItem}
+      onPress={() => navigateToCategory(item)}
+    >
       <View style={styles.categoryIcon}>
         <Ionicons name={item.icon} size={24} color="#333" />
       </View>
@@ -88,7 +117,10 @@ const HomeScreen = () => {
   );
 
   const renderPopularItem = ({ item }) => (
-    <TouchableOpacity style={styles.popularCard}>
+    <TouchableOpacity 
+      style={styles.popularCard}
+      onPress={() => navigateToRestaurant(item)}
+    >
       <Image source={item.image} style={styles.popularImage} />
       <Text style={styles.popularName}>{item.name}</Text>
       <View style={styles.ratingContainer}>
@@ -101,101 +133,115 @@ const HomeScreen = () => {
   );
 
   return (
-    <View style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Location Selector */}
-        <View style={styles.locationContainer}>
-          <Text style={styles.appTitle}>OrderUp</Text>
-          <TouchableOpacity style={styles.locationSelector}>
-            <Ionicons name="location" size={20} color="#FF5722" />
-            <Text style={styles.locationText}>Nairobi, Kenya</Text>
-            <Ionicons name="chevron-down" size={20} color="#333" />
-          </TouchableOpacity>
-        </View>
-
-        {/* Search Bar */}
-        <View style={styles.searchContainer}>
-          <Ionicons name="search" size={20} color="#999" />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Find restaurants, cuisines..."
-          />
-        </View>
-
-        {/* Category Filters */}
-        <View style={styles.filterContainer}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            <TouchableOpacity style={[styles.filterButton, styles.activeFilter]}>
-              <Text style={styles.activeFilterText}>All</Text>
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+      <View style={styles.container}>
+        <ScrollView showsVerticalScrollIndicator={false}>
+          {/* App Bar with Logo and Location */}
+          <View style={styles.appBar}>
+            <Text style={styles.appTitle}>OrderUp</Text>
+            <TouchableOpacity style={styles.locationSelector}>
+              <Ionicons name="location" size={20} color="#FF5722" />
+              <Text style={styles.locationText}>Nairobi, Kenya</Text>
+              <Ionicons name="chevron-down" size={20} color="#333" />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.filterButton}>
-              <Text style={styles.filterText}>Nearby</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.filterButton}>
-              <Text style={styles.filterText}>Fast Food</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.filterButton}>
-              <Text style={styles.filterText}>Healthy</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.filterButton}>
-              <Text style={styles.filterText}>Offers</Text>
-            </TouchableOpacity>
-          </ScrollView>
-        </View>
+          </View>
 
-        {/* Featured Restaurants */}
-        <View style={styles.sectionContainer}>
-          <Text style={styles.sectionTitle}>Featured Restaurants</Text>
-          <FlatList
-            data={featuredRestaurants}
-            renderItem={renderFeaturedItem}
-            keyExtractor={(item) => item.id}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-          />
-        </View>
+          {/* Search Bar */}
+          <View style={styles.searchContainer}>
+            <Ionicons name="search" size={20} color="#999" />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Find restaurants, cuisines..."
+              value={searchText}
+              onChangeText={handleSearch}
+            />
+            {searchText.length > 0 && (
+              <TouchableOpacity onPress={() => setSearchText('')}>
+                <Ionicons name="close-circle" size={20} color="#999" />
+              </TouchableOpacity>
+            )}
+          </View>
 
-        {/* Categories */}
-        <View style={styles.sectionContainer}>
-          <Text style={styles.sectionTitle}>Categories</Text>
-          <FlatList
-            data={categories}
-            renderItem={renderCategoryItem}
-            keyExtractor={(item) => item.id}
-            numColumns={4}
-            scrollEnabled={false}
-          />
-        </View>
+          {/* Category Filters */}
+          <View style={styles.filterContainer}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              <TouchableOpacity style={[styles.filterButton, styles.activeFilter]}>
+                <Text style={styles.activeFilterText}>All</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.filterButton}>
+                <Text style={styles.filterText}>Nearby</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.filterButton}>
+                <Text style={styles.filterText}>Fast Food</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.filterButton}>
+                <Text style={styles.filterText}>Healthy</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.filterButton}>
+                <Text style={styles.filterText}>Offers</Text>
+              </TouchableOpacity>
+            </ScrollView>
+          </View>
 
-        {/* Popular Restaurants */}
-        <View style={styles.sectionContainer}>
-          <Text style={styles.sectionTitle}>Popular Restaurants</Text>
-          <FlatList
-            data={popularRestaurants}
-            renderItem={renderPopularItem}
-            keyExtractor={(item) => item.id}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-          />
-        </View>
-      </ScrollView>
+          {/* Featured Restaurants */}
+          <View style={styles.sectionContainer}>
+            <Text style={styles.sectionTitle}>Featured Restaurants</Text>
+            <FlatList
+              data={featuredRestaurants}
+              renderItem={renderFeaturedItem}
+              keyExtractor={(item) => item.id}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+            />
+          </View>
 
-      
-    </View>
+          {/* Categories */}
+          <View style={styles.sectionContainer}>
+            <Text style={styles.sectionTitle}>Categories</Text>
+            <FlatList
+              data={categories}
+              renderItem={renderCategoryItem}
+              keyExtractor={(item) => item.id}
+              numColumns={4}
+              scrollEnabled={false}
+            />
+          </View>
+
+          {/* Popular Restaurants */}
+          <View style={styles.sectionContainer}>
+            <Text style={styles.sectionTitle}>Popular Restaurants</Text>
+            <FlatList
+              data={popularRestaurants}
+              renderItem={renderPopularItem}
+              keyExtractor={(item) => item.id}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+            />
+          </View>
+        </ScrollView>
+      </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#fff',
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+  },
   container: {
     flex: 1,
     backgroundColor: '#fff',
   },
-  locationContainer: {
+  appBar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingTop: 16,
+    paddingTop: 12,
+    paddingBottom: 8,
   },
   appTitle: {
     fontSize: 22,
@@ -205,19 +251,22 @@ const styles = StyleSheet.create({
   locationSelector: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 8,
+    backgroundColor: '#f5f5f5',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 16,
   },
   locationText: {
-    fontSize: 16,
-    marginLeft: 4,
-    marginRight: 4,
+    fontSize: 14,
+    marginHorizontal: 4,
+    color: '#333',
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#f5f5f5',
     marginHorizontal: 16,
-    marginVertical: 16,
+    marginVertical: 12,
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 25,
@@ -348,25 +397,6 @@ const styles = StyleSheet.create({
   category: {
     fontSize: 12,
     color: '#666',
-  },
-  bottomNav: {
-    flexDirection: 'row',
-    borderTopWidth: 1,
-    borderTopColor: '#eee',
-    paddingVertical: 8,
-  },
-  navItem: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  navText: {
-    fontSize: 12,
-    marginTop: 4,
-    color: '#999',
-  },
-  activeNavText: {
-    color: '#FF5722',
   },
 });
 
