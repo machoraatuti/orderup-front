@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { ORDERUP_SERVER } from "@env";
 
 const CheckoutScreen = ({ navigation }) => {
   const [deliveryAddress, setDeliveryAddress] = useState({
@@ -44,7 +45,7 @@ const CheckoutScreen = ({ navigation }) => {
 
     if (paymentMethod === 'mpesa') {
       try {
-        const response = await fetch('https://4958-196-96-184-180.ngrok-free.app/api/checkout', {
+        const response = await fetch(`${ ORDERUP_SERVER }/api/checkout`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -75,7 +76,7 @@ const CheckoutScreen = ({ navigation }) => {
 
     navigation.reset({
       index: 0,
-      routes: [{ name: 'Main' }],
+      routes: [{ name: 'MainContent' }],
     });
 };
 
